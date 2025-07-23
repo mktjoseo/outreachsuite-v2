@@ -1,0 +1,14 @@
+{
+  "name": "hybrid-scraper",
+ "version": "1.0.0",
+  "description": "Serverless functions for OutreachSuite",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eduardo Bortolotti L.",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}

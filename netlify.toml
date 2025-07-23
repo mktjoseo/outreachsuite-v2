@@ -1,0 +1,27 @@
+# Main build settings
+[build]
+  # Tells Netlify where to find the serverless functions
+  functions = "netlify/functions"
+
+# Global settings for all functions
+[functions]
+  # Use the modern and fast 'esbuild' bundler
+  node_bundler = "esbuild"
+
+# Increase the timeout for functions that can be slow due to external API calls.
+[functions.scrape]
+  timeout = 25 # in seconds
+
+# Se usa el timeout extendido de 25 segundos, que es compatible con el plan gratuito.
+[functions.affinity-search]
+  timeout = 25 # in seconds
+
+[functions.generate-keywords]
+  timeout = 25 # in seconds
+
+[functions.ask-gemini]
+  timeout = 25 # in seconds
+
+# New function of triage
+[functions.triage-links]
+  timeout = 25 # in seconds
