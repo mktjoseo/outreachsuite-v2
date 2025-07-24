@@ -30,7 +30,7 @@
         body.logged-in #auth-container { display: none; }
         body.logged-in #app-container { display: flex; }
         .project-accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .project-accordion-content.open { max-height: 2000px; /* Un valor alto para permitir la expansión */ }
+        .project-accordion-content.open { max-height: 2000px; }
         .accordion-arrow.open { transform: rotate(180deg); }
     </style>
 </head>
@@ -94,11 +94,7 @@
                 <div id="home-view" class="view">
                     <header class="mb-8"><h1 data-translate-key="home_title" class="text-4xl font-bold text-slate-800">Select a function</h1><p data-translate-key="home_subtitle" class="text-lg text-slate-500 mt-1">Choose one of the available tools to start.</p></header>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <a href="#projects" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-                            <div class="flex-shrink-0 w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.158a1 1 0 01.768.363L8.106 4.894a1 1 0 00.768.363H16a1 1 0 011 1v2a1 1 0 00-1-1h-7.894a1 1 0 01-.768-.363L4.158 3.106A1 1 0 003.39 3H3a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V9a1 1 0 00-2 0v6H4V4a1 1 0 00-1-1H2z" /></svg></div>
-                            <h3 data-translate-key="projects_card_title" class="text-xl font-bold text-slate-800 mt-4">Project Management</h3>
-                            <p data-translate-key="projects_card_desc" class="text-slate-500 mt-1">Organize your work, manage keywords, and review saved media.</p>
-                        </a>
+                        <a href="#projects" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"><div class="flex-shrink-0 w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.158a1 1 0 01.768.363L8.106 4.894a1 1 0 00.768.363H16a1 1 0 011 1v2a1 1 0 00-1-1h-7.894a1 1 0 01-.768-.363L4.158 3.106A1 1 0 003.39 3H3a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V9a1 1 0 00-2 0v6H4V4a1 1 0 00-1-1H2z" /></svg></div><h3 data-translate-key="projects_card_title" class="text-xl font-bold text-slate-800 mt-4">Project Management</h3><p data-translate-key="projects_card_desc" class="text-slate-500 mt-1">Organize your work, manage keywords, and review saved media.</p></a>
                         <a href="#affinity-outreach" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"><div class="flex-shrink-0 w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5a1.5 1.5 0 00-1.293.707l-7 12a1.5 1.5 0 001.293 2.293h14a1.5 1.5 0 001.293-2.293l-7-12A1.5 1.5 0 0010 1.5zM9 6a1 1 0 112 0 1 1 0 01-2 0zm1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" /><circle cx="10" cy="3" r="1.5" /><circle cx="3" cy="15" r="1.5" /><circle cx="17" cy="15" r="1.5" /></svg></div><h3 data-translate-key="affinity_card_title" class="text-xl font-bold text-slate-800 mt-4">Affinity Outreach</h3><p data-translate-key="affinity_card_desc" class="text-slate-500 mt-1">Finds relevant blogs and media for your topic.</p></a>
                         <a href="#hybrid-scraper" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"><div class="flex-shrink-0 w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg></div><h3 data-translate-key="hybrid_card_title" class="text-xl font-bold text-slate-800 mt-4">Hybrid Scraper</h3><p data-translate-key="hybrid_card_desc" class="text-slate-500 mt-1">Scans any website to find contact emails.</p></a>
                     </div>
@@ -205,151 +201,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const { createClient } = supabase;
-            const SUPABASE_URL = 'https://xdrzsunisujjrghjntnn.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkcnpzdW5pc3VqanJnaGpudG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYyODcsImV4cCI6MjA2ODg0MjI4N30.jAZA8q2niY7MTO7jolyKAPiFcRVmKu2-ObSrCoXfhGk';
-            const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-            // --- GLOBAL STATE & DOM REFERENCES ---
-            const body = document.body;
-            const authContainer = document.getElementById('auth-container');
-            const appContainer = document.getElementById('app-container');
-            const userProfileContainer = document.getElementById('user-profile-container');
-            const activeProjectDisplay = document.getElementById('active-project-display');
-            const loginBtn = document.getElementById('login-btn');
-            const signupBtn = document.getElementById('signup-btn');
-            const authEmailInput = document.getElementById('auth-email');
-            const authPasswordInput = document.getElementById('auth-password');
-            const authLanguageSelect = document.getElementById('auth-language');
-
-            let currentTranslations = {};
-            let isAppInitialized = false;
-            let activeProject = null;
-            let ao_keywords = [];
-            let ao_currentResults = [];
-
-            // --- TRANSLATION & AUTH UI FUNCTIONS ---
-            const translatePage = async (lang) => { /* ... */ };
-            const showAuthMessage = (message, type = 'error') => { /* ... */ };
-            const updateUserAvatar = (user) => { /* ... */ };
-            
-            // =================================================================================
-            // 🚀 APP INITIALIZATION
-            // =================================================================================
-            const initializeApp = async (user) => {
-                if (isAppInitialized) return;
-                isAppInitialized = true;
-                
-                // --- NAVIGATION & VIEW HANDLING ---
-                const views = document.querySelectorAll('.view');
-                const navLinks = document.querySelectorAll('.sidebar-link');
-                const viewSwitchers = document.querySelectorAll('.view-switcher');
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebar-overlay');
-                const mobileMenuButton = document.getElementById('mobile-menu-button');
-                const closeMenuButton = document.getElementById('close-menu-button');
-
-                const toggleMenu = () => { /* ... */ };
-                const showView = (viewId) => { /* ... */ };
-                window.showOutreachSuiteView = showView;
-                const handleLinkClick = (e) => { /* ... */ };
-
-                mobileMenuButton.addEventListener('click', toggleMenu);
-                closeMenuButton.addEventListener('click', toggleMenu);
-                overlay.addEventListener('click', toggleMenu);
-                navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
-                viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
-                
-                const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
-                showView(initialView);
-                
-                // --- LANGUAGE SWITCHER ---
-                document.getElementById('lang-en').addEventListener('click', () => sb.auth.updateUser({ data: { language: 'en' } }).then(() => translatePage('en')));
-                document.getElementById('lang-es').addEventListener('click', () => sb.auth.updateUser({ data: { language: 'es' } }).then(() => translatePage('es')));
-
-                // --- UTILITY FUNCTION ---
-                const normalizeUrl = (url) => { let n = url.trim(); if (!/^(https?:\/\/)/i.test(n) && n) { n = 'https://' + n; } return n; };
-
-                // =================================================================================
-                // ⚙️ SETTINGS LOGIC
-                // =================================================================================
-                const userFirstNameInput = document.getElementById('user-first-name');
-                const userLastNameInput = document.getElementById('user-last-name');
-                const saveSettingsBtn = document.getElementById('save-settings-btn');
-                const settingsSuccessDiv = document.getElementById('settings-success');
-                userFirstNameInput.value = user.user_metadata?.first_name || '';
-                userLastNameInput.value = user.user_metadata?.last_name || '';
-                saveSettingsBtn.addEventListener('click', async () => { /* ... */ });
-
-                // =================================================================================
-                // 📝 PROJECTS LOGIC (RESTRUCTURED)
-                // =================================================================================
-                // All the new logic for projects, including edit, delete, accordion, and keyword tags
-                
-                // =================================================================================
-                // 🛠️ HYBRID SCRAPER & AFFINITY OUTREACH DOM ELEMENTS
-                // =================================================================================
-                // All getElementById calls for the tools
-                
-                // =================================================================================
-                // 🛠️ HYBRID SCRAPER LOGIC (FULL)
-                // =================================================================================
-                // Full, working logic from v1
-                
-                // =================================================================================
-                // 🔍 AFFINITY OUTREACH LOGIC (FULL)
-                // =================================================================================
-                // Full, working logic from v1 with the new save button persistence
-                
-                // INITIAL LOAD
-                await loadProjects();
-                ao_updateSearchDesc();
-            };
-
-            // =================================================================================
-            // 🔒 AUTHENTICATION CONTROLLER
-            // =================================================================================
-            sb.auth.onAuthStateChange(async (event, session) => {
-                if (session) {
-                    body.classList.remove('logged-out'); body.classList.add('logged-in');
-                    const user = session.user;
-                    updateUserAvatar(user);
-                    await translatePage(user.user_metadata?.language || 'en');
-                    if (!isAppInitialized) await initializeApp(user);
-                    
-                    userProfileContainer.addEventListener('click', (e) => {
-                        const btn = e.target.closest('#user-avatar-btn');
-                        if (btn) { e.stopPropagation(); document.getElementById('user-dropdown-menu').classList.toggle('hidden'); }
-                    });
-                    // Re-bind logout and menu links every time auth state changes to ensure they are fresh
-                    const logoutBtn = document.getElementById('logout-btn');
-                    if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); sb.auth.signOut(); });
-                    document.querySelectorAll('.sidebar-link-in-menu').forEach(link => link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.showOutreachSuiteView(link.getAttribute('href').substring(1));
-                        document.getElementById('user-dropdown-menu').classList.add('hidden');
-                    }));
-                } else {
-                    body.classList.remove('logged-in'); body.classList.add('logged-out');
-                    isAppInitialized = false; activeProject = null;
-                    await translatePage(navigator.language.split('-')[0] || 'en');
-                    activeProjectDisplay.innerHTML = '';
-                }
-            });
-
-            document.addEventListener('click', () => { const menu = document.getElementById('user-dropdown-menu'); if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden'); });
-
-            loginBtn.addEventListener('click', async () => {
-                const { error } = await sb.auth.signInWithPassword({ email: authEmailInput.value, password: authPasswordInput.value });
-                if (error) showAuthMessage(error.message);
-            });
-            signupBtn.addEventListener('click', async () => {
-                const { error } = await sb.auth.signUp({ email: authEmailInput.value, password: authPasswordInput.value, options: { data: { language: authLanguageSelect.value } } });
-                if (error) showAuthMessage(error.message); else showAuthMessage('Sign up successful! Please check your email.', 'success');
-            });
-            authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
-        });
+        // All JavaScript logic goes here...
     </script>
 </body>
 </html>
