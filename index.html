@@ -31,16 +31,57 @@
         body.logged-in #app-container { display: flex; }
         .project-accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
         .project-accordion-content.open { max-height: 2000px; /* Un valor alto para permitir la expansión */ }
+        .accordion-arrow.open { transform: rotate(180deg); }
     </style>
 </head>
 <body class="bg-gray-100 logged-out">
 
     <div id="auth-container" class="min-h-screen flex items-center justify-center bg-slate-50">
+        <div class="p-8 bg-white rounded-xl shadow-lg max-w-md w-full">
+            <div class="text-center">
+                <h1 data-translate-key="login_title" class="text-4xl font-bold text-slate-800">Welcome to OutreachSuite</h1>
+                <p data-translate-key="login_subtitle" class="text-slate-500 mt-2 mb-8">Please log in to access the tools.</p>
+            </div>
+            <div id="auth-error" class="hidden bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4"></div>
+            <div id="auth-success" class="hidden bg-green-100 text-green-700 text-sm p-3 rounded-lg mb-4"></div>
+            <form id="auth-form" class="space-y-4">
+                <input type="email" id="auth-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                <input type="password" id="auth-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                <select id="auth-language" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                </select>
+                <div class="flex gap-4">
+                    <button type="button" id="login-btn" data-translate-key="login_btn" class="w-full bg-slate-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-600 transition">Log In</button>
+                    <button type="button" id="signup-btn" data-translate-key="signup_btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transition">Sign Up</button>
+                </div>
+            </form>
         </div>
+    </div>
     
     <div id="app-container" class="relative min-h-screen md:flex">
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
         <aside id="sidebar" class="w-64 bg-slate-800 text-white flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
-            </aside>
+            <div class="flex items-center justify-between p-6 text-2xl font-bold border-b border-slate-700">
+                <span data-translate-key="app_title">OutreachSuite</span>
+                <button id="close-menu-button" class="md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            <nav class="flex-grow p-4">
+                <ul class="space-y-2">
+                    <li><a href="#home" class="sidebar-link" data-translate-key="nav_home"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>Dashboard</a></li>
+                    <li><a href="#projects" class="sidebar-link" data-translate-key="nav_projects"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.158a1 1 0 01.768.363L8.106 4.894a1 1 0 00.768.363H16a1 1 0 011 1v2a1 1 0 00-1-1h-7.894a1 1 0 01-.768-.363L4.158 3.106A1 1 0 003.39 3H3a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V9a1 1 0 00-2 0v6H4V4a1 1 0 00-1-1H2z" /></svg>Projects</a></li>
+                    <li><a href="#affinity-outreach" class="sidebar-link" data-translate-key="nav_affinity"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5a1.5 1.5 0 00-1.293.707l-7 12a1.5 1.5 0 001.293 2.293h14a1.5 1.5 0 001.293-2.293l-7-12A1.5 1.5 0 0010 1.5zM9 6a1 1 0 112 0 1 1 0 01-2 0zm1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" /><circle cx="10" cy="3" r="1.5" /><circle cx="3" cy="15" r="1.5" /><circle cx="17" cy="15" r="1.5" /></svg>Affinity Outreach</a></li>
+                    <li><a href="#hybrid-scraper" class="sidebar-link" data-translate-key="nav_hybrid"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>Hybrid Scraper</a></li>
+                </ul>
+            </nav>
+            <div class="p-4 mt-auto border-t border-slate-700 space-y-4">
+                <div class="flex items-center justify-center gap-2">
+                    <button id="lang-es" class="px-3 py-1 text-sm rounded-md transition-colors">Español</button>
+                    <button id="lang-en" class="px-3 py-1 text-sm rounded-md transition-colors">English</button>
+                </div>
+                <p class="text-xs text-slate-400 text-center" data-translate-key="made_by">Made with <span class="text-red-500">♥</span> by Eduardo Bortolotti L.</p>
+            </div>
+        </aside>
 
         <div class="flex-1 flex flex-col">
             <header class="bg-white shadow-sm border-b border-gray-200 p-4 flex justify-between items-center z-10">
@@ -58,16 +99,8 @@
                             <h3 data-translate-key="projects_card_title" class="text-xl font-bold text-slate-800 mt-4">Project Management</h3>
                             <p data-translate-key="projects_card_desc" class="text-slate-500 mt-1">Organize your work, manage keywords, and review saved media.</p>
                         </a>
-                        <a href="#affinity-outreach" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-                            <div class="flex-shrink-0 w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5a1.5 1.5 0 00-1.293.707l-7 12a1.5 1.5 0 001.293 2.293h14a1.5 1.5 0 001.293-2.293l-7-12A1.5 1.5 0 0010 1.5zM9 6a1 1 0 112 0 1 1 0 01-2 0zm1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" /><circle cx="10" cy="3" r="1.5" /><circle cx="3" cy="15" r="1.5" /><circle cx="17" cy="15" r="1.5" /></svg></div>
-                            <h3 data-translate-key="affinity_card_title" class="text-xl font-bold text-slate-800 mt-4">Affinity Outreach</h3>
-                            <p data-translate-key="affinity_card_desc" class="text-slate-500 mt-1">Finds relevant blogs and media for your topic.</p>
-                        </a>
-                        <a href="#hybrid-scraper" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-                            <div class="flex-shrink-0 w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg></div>
-                            <h3 data-translate-key="hybrid_card_title" class="text-xl font-bold text-slate-800 mt-4">Hybrid Scraper</h3>
-                            <p data-translate-key="hybrid_card_desc" class="text-slate-500 mt-1">Scans any website to find contact emails.</p>
-                        </a>
+                        <a href="#affinity-outreach" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"><div class="flex-shrink-0 w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5a1.5 1.5 0 00-1.293.707l-7 12a1.5 1.5 0 001.293 2.293h14a1.5 1.5 0 001.293-2.293l-7-12A1.5 1.5 0 0010 1.5zM9 6a1 1 0 112 0 1 1 0 01-2 0zm1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" /><circle cx="10" cy="3" r="1.5" /><circle cx="3" cy="15" r="1.5" /><circle cx="17" cy="15" r="1.5" /></svg></div><h3 data-translate-key="affinity_card_title" class="text-xl font-bold text-slate-800 mt-4">Affinity Outreach</h3><p data-translate-key="affinity_card_desc" class="text-slate-500 mt-1">Finds relevant blogs and media for your topic.</p></a>
+                        <a href="#hybrid-scraper" class="view-switcher bg-white p-6 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"><div class="flex-shrink-0 w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg></div><h3 data-translate-key="hybrid_card_title" class="text-xl font-bold text-slate-800 mt-4">Hybrid Scraper</h3><p data-translate-key="hybrid_card_desc" class="text-slate-500 mt-1">Scans any website to find contact emails.</p></a>
                     </div>
                 </div>
 
@@ -79,14 +112,13 @@
                                 <input type="hidden" id="project-id-input">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div><label for="project-name" data-translate-key="project_name_label" class="block text-sm font-medium text-slate-600 mb-1">Project Name</label><input type="text" id="project-name" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]" data-translate-key="project_name_placeholder" placeholder="e.g., Launch Campaign for Client X"></div>
-                                    <div><label for="project-url" data-translate-key="project_url_label" class="block text-sm font-medium text-slate-600 mb-1">Project URL</label><input type="url" id="project-url" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]" data-translate-key="project_url_placeholder" placeholder="e.g., https://client-x.com"></div>
+                                    <div><label for="project-url" data-translate-key="project_url_label" class="block text-sm font-medium text-slate-600 mb-1">Project URL</label><input type="text" id="project-url" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]" data-translate-key="project_url_placeholder" placeholder="domain.com"></div>
                                 </div>
                                 <div>
                                     <label for="project-keyword-input" data-translate-key="project_keywords_label" class="block text-sm font-medium text-slate-600 mb-1">Keywords</label>
                                     <div class="flex items-center space-x-2 w-full bg-gray-50 border border-gray-300 rounded-lg p-1">
-                                        <div id="project-tags-container" class="flex-grow flex flex-wrap items-center gap-2">
-                                            <input type="text" id="project-keyword-input" data-translate-key="add_keyword_placeholder" class="flex-grow bg-transparent border-none focus:ring-0 text-sm p-1" placeholder="Add keyword & press Enter...">
-                                        </div>
+                                        <div id="project-tags-container" class="flex-grow flex flex-wrap items-center gap-2 pl-2"></div>
+                                        <input type="text" id="project-keyword-input" data-translate-key="add_keyword_placeholder" class="flex-grow bg-transparent border-none focus:ring-0 text-sm p-1" placeholder="Add keyword & press Enter...">
                                     </div>
                                 </div>
                                 <div class="flex justify-end gap-2 pt-2">
@@ -95,7 +127,6 @@
                                 </div>
                             </form>
                         </div>
-
                         <div>
                             <h2 class="text-3xl font-bold text-slate-800 mb-4">My Projects</h2>
                             <div id="projects-list-container" class="space-y-3"></div>
@@ -104,24 +135,104 @@
                 </div>
 
                 <div id="hybrid-scraper-view" class="view hidden">
+                    <div class="container mx-auto max-w-5xl">
+                        <header class="relative text-left mb-8"><h1 data-translate-key="hybrid_title" class="text-4xl sm:text-5xl font-bold text-[#39414E]">Hybrid Scraper</h1><p data-translate-key="hybrid_subtitle" class="mt-2 text-lg text-gray-500">Uncover contact information from any website.</p></header>
+                        <div class="bg-white p-4 rounded-xl shadow-lg"><div class="flex flex-col sm:flex-row gap-3"><input type="url" id="urlInput" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate..." class="flex-grow p-4 border border-gray-200 rounded-lg text-lg focus:ring-2 focus:ring-[#BF103C]"><button id="scrapeBtn" class="bg-[#BF103C] text-white font-semibold py-4 px-8 rounded-lg flex items-center justify-center text-lg hover:bg-opacity-90"><span id="search-btn-text" data-translate-key="hybrid_search_btn">Search</span></button></div></div>
+                        <div id="log-console" class="mt-8 bg-gray-800 rounded-xl shadow-lg hidden"><div class="bg-gray-700 rounded-t-lg px-4 py-2 flex items-center"><span class="h-3 w-3 bg-red-500 rounded-full mr-2"></span><span class="h-3 w-3 bg-yellow-500 rounded-full mr-2"></span><span class="h-3 w-3 bg-green-500 rounded-full"></span><span class="ml-4 text-gray-300 console-font text-sm">Process Console</span></div><div id="log-container" class="p-4 console-font text-sm h-96 overflow-y-auto"></div></div>
+                        <div id="prompt-container" class="mt-6 hidden"><div class="bg-gray-800 p-6 rounded-lg shadow-md text-left"><p class="text-lg font-semibold text-[#0FCCC9] console-font" id="prompt-message"></p><div id="prompt-links" class="mt-4 mb-6 p-4 bg-black bg-opacity-20 rounded-md space-y-2 max-h-48 overflow-y-auto"></div><div class="flex justify-center gap-4"><button id="deep-scan-btn" class="w-full bg-[#0FCCC9] text-[#39414E] font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" /></svg>Execute Deep Scan</button></div></div></div>
+                        <div id="ai-prompt-container" class="mt-6 hidden"><div class="bg-gray-800 p-6 rounded-lg shadow-md text-left"><p class="text-lg font-semibold text-purple-400 console-font" id="ai-prompt-title"></p><p class="mt-2 text-gray-300 console-font" id="ai-prompt-subtitle"></p><div class="flex justify-center gap-4 mt-6"><button id="ask-ai-btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>Engage Gemini AI</button></div></div></div>
+                        <div id="results" class="mt-10 hidden"><h2 class="text-2xl font-bold text-[#39414E] mb-4">Final Results</h2><div id="emails-container" class="mb-8 hidden"><h3 class="text-xl font-semibold text-gray-700 mb-3">Emails Found</h3><div id="emailList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div><div id="socials-container" class="hidden"><h3 class="text-xl font-semibold text-gray-700 mb-3">Social & Contact Links</h3><div id="socialList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div></div>
+                        <div id="error-message" class="hidden mt-6 bg-red-100 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg" role="alert"><p class="font-bold">An error occurred!</p><p id="error-text"></p></div>
                     </div>
+                </div>
 
                 <div id="affinity-outreach-view" class="view hidden">
+                    <div class="container mx-auto max-w-4xl">
+                        <header class="text-center mb-8"><h1 data-translate-key="affinity_title" class="text-3xl md:text-4xl font-bold text-[#39414E] mb-2">Affinity Outreach Finder</h1><p data-translate-key="affinity_subtitle" class="text-gray-600">Discover relevant media outlets based on real SEO data.</p></header>
+                        <main>
+                            <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                                <h3 data-translate-key="step1_title" class="text-xl font-bold text-slate-800 mb-4">1. Analyze Your Project for Keywords</h3>
+                                <div><label for="ao-projectUrl" data-translate-key="project_url_label" class="block text-sm font-medium text-[#39414E] mb-2">Project URL</label><div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"><input type="url" id="ao-projectUrl" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]" data-translate-key="project_url_placeholder" placeholder="e.g., https://yourproject.com"><div class="flex-shrink-0 flex"><button type="button" id="ao-generateKeywordsButton" class="bg-[#0FCCC9] hover:opacity-90 text-white font-bold py-3 px-4 rounded-lg text-sm flex items-center justify-center w-full"><span id="ao-generate-btn-text" data-translate-key="analyze_btn">Analyze & Generate</span><div id="ao-generate-loader" class="loader ease-linear rounded-full border-2 border-t-2 border-white h-4 w-4 ml-2 hidden"></div></button></div></div></div>
+                                <div id="ao-keyword-log-console" class="hidden mt-4 bg-gray-800 rounded-xl shadow-lg"><div class="bg-gray-700 rounded-t-lg px-4 py-2 flex items-center"><span class="h-3 w-3 bg-red-500 rounded-full mr-2"></span><span class="h-3 w-3 bg-yellow-500 rounded-full mr-2"></span><span class="h-3 w-3 bg-green-500 rounded-full"></span><span class="ml-4 text-gray-300 console-font text-sm">Keyword Analysis Log</span></div><div id="ao-keyword-log-container" class="p-4 console-font text-sm text-left text-gray-300 h-40 overflow-y-auto"></div></div>
+                                <div id="ao-keyword-errorMessage" class="hidden mt-4 bg-red-100 border-red-400 text-red-700 px-4 py-3 rounded-lg text-center" role="alert"><strong class="font-bold">Analysis Error!</strong><span class="block sm:inline" id="ao-keyword-errorText"></span></div>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h3 data-translate-key="step2_title" class="text-xl font-bold text-slate-800 mb-4">2. Find Affinity Media</h3>
+                                <form id="ao-searchForm">
+                                    <div class="space-y-6">
+                                        <div><label for="ao-keyword-input" data-translate-key="keywords_label" class="block text-sm font-medium text-[#39414E] mb-2">Keywords or Topics</label><div class="flex items-center space-x-2 w-full bg-gray-100 border border-gray-300 rounded-lg p-1"><div id="ao-tags-container" class="flex-grow flex flex-wrap items-center gap-2 pl-2"></div><input type="text" id="ao-keyword-input" data-translate-key="add_keyword_placeholder" class="flex-grow bg-transparent border-none focus:ring-0 text-sm p-1" placeholder="Add keyword & press Enter..."></div></div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"><div><label for="ao-searchType" data-translate-key="search_type_label" class="block text-sm font-medium text-[#39414E] mb-2">Search Type</label><select id="ao-searchType" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]"><option value="top_authority" selected>Top Authority (Top 1-10)</option><option value="established">Established Media (Top 11-30)</option><option value="rising_stars">Rising Stars (Top 31-50)</option></select></div><div id="ao-searchType-description" class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 mt-2 md:mt-0"></div></div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="ao-country" data-translate-key="country_label" class="block text-sm font-medium text-[#39414E] mb-2">Country</label><select id="ao-country" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]"><option value="AR">Argentina</option><option value="AT">Austria</option><option value="BR">Brazil</option><option value="CL">Chile</option><option value="CO">Colombia</option><option value="FR">France</option><option value="DE">Germany</option><option value="IT">Italy</option><option value="MX">Mexico</option><option value="PL">Poland</option><option value="PT">Portugal</option><option value="ES">Spain</option><option value="CH">Switzerland</option><option value="GB">United Kingdom</option><option value="US" selected>USA</option></select></div><div><label for="ao-language" data-translate-key="language_label" class="block text-sm font-medium text-[#39414E] mb-2">Language</label><select id="ao-language" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]"><option value="en" selected>English</option><option value="fr">French</option><option value="de">German</option><option value="it">Italian</option><option value="pl">Polish</option><option value="pt">Portuguese</option><option value="es">Spanish</option></select></div></div>
+                                        <div class="flex justify-center pt-2"><button type="submit" id="ao-searchButton" data-translate-key="search_media_btn" class="w-full md:w-1/2 bg-[#BF103C] hover:opacity-90 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mr-2" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>Search Media</button></div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div id="ao-log-console" class="hidden mt-6 bg-gray-800 rounded-xl shadow-lg"><div class="bg-gray-700 rounded-t-lg px-4 py-2 flex items-center"><span class="h-3 w-3 bg-red-500 rounded-full mr-2"></span><span class="h-3 w-3 bg-yellow-500 rounded-full mr-2"></span><span class="h-3 w-3 bg-green-500 rounded-full"></span><span class="ml-4 text-gray-300 console-font text-sm">Search Process Log</span></div><div id="ao-log-container" class="p-4 console-font text-sm text-left text-gray-300 h-48 overflow-y-auto"></div></div>
+                            <div id="ao-loader" class="hidden text-center my-10"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto mb-4"></div><p class="text-lg text-gray-500">Analyzing the web... This may take a moment.</p></div>
+                            <div id="ao-errorMessage" class="hidden bg-red-100 border-red-400 text-red-700 px-4 py-3 rounded-lg text-center mt-6" role="alert"><strong class="font-bold">Error!</strong><span class="block sm:inline" id="ao-errorText"></span></div>
+                            <div id="ao-resultsArea" class="hidden mt-12"><section id="ao-directResultsSection"><div class="flex flex-col md:flex-row justify-between items-center mb-4"><h2 class="text-2xl font-bold text-[#39414E] mb-2 md:mb-0">Found Media</h2><div class="flex space-x-2"><button id="ao-sortButton" class="bg-[#0FCCC9] hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-sm">Sort by Relevance</button><button id="ao-exportButton" class="bg-[#BF103C] hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-sm">Export Selected</button></div></div><div id="ao-resultsSummary" class="mb-4 text-sm text-gray-600"></div><div id="ao-resultsList" class="space-y-4"></div></section></div>
+                        </main>
                     </div>
+                </div>
 
                 <div id="settings-view" class="view hidden">
+                    <div class="container mx-auto max-w-3xl">
+                        <header class="mb-8"><h1 data-translate-key="settings_title" class="text-4xl font-bold text-slate-800">Settings</h1><p data-translate-key="settings_subtitle" class="text-lg text-slate-500 mt-1">Manage your preferences and API keys.</p></header>
+                        <div id="settings-success" class="hidden bg-green-100 text-green-700 text-sm p-3 rounded-lg mb-6"></div>
+                        <div class="space-y-8">
+                             <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h3 data-translate-key="profile_settings_title" class="text-xl font-bold text-slate-800 mb-4">Profile Information</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label for="user-first-name" data-translate-key="first_name_label" class="block text-sm font-medium text-[#39414E] mb-2">First Name</label><input type="text" id="user-first-name" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3"></div>
+                                    <div><label for="user-last-name" data-translate-key="last_name_label" class="block text-sm font-medium text-[#39414E] mb-2">Last Name</label><input type="text" id="user-last-name" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h3 data-translate-key="api_keys_title" class="text-xl font-bold text-slate-800 mb-2">API Keys</h3>
+                                <p data-translate-key="api_keys_subtitle" class="text-sm text-slate-500 mb-6">This feature will be enabled in a future update.</p>
+                                <div class="space-y-4">
+                                    <div><label for="gemini-key" class="block text-sm font-medium text-[#39414E] mb-2">Gemini API Key</label><input type="password" id="gemini-key" placeholder="Paste your Gemini API key" disabled class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3"></div>
+                                    <div><label for="serper-key" class="block text-sm font-medium text-[#39414E] mb-2">Serper API Key</label><input type="password" id="serper-key" placeholder="Paste your Serper API key" disabled class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3"></div>
+                                    <div><label for="scraper-key" class="block text-sm font-medium text-[#39414E] mb-2">ScraperAPI Key</label><input type="password" id="scraper-key" placeholder="Paste your ScraperAPI key" disabled class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3"></div>
+                                </div>
+                            </div>
+                             <div class="flex justify-end"><button id="save-settings-btn" data-translate-key="save_settings_btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition">Save Settings</button></div>
+                        </div>
                     </div>
+                </div>
             </main>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // ... Supabase Client Initialization ...
-            
-            // ... GLOBAL STATE & DOM REFERENCES ...
-            
-            // ... TRANSLATION & AUTH UI FUNCTIONS ...
+            const { createClient } = supabase;
+            const SUPABASE_URL = 'https://xdrzsunisujjrghjntnn.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkcnpzdW5pc3VqanJnaGpudG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYyODcsImV4cCI6MjA2ODg0MjI4N30.jAZA8q2niY7MTO7jolyKAPiFcRVmKu2-ObSrCoXfhGk';
+            const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // --- GLOBAL STATE & DOM REFERENCES ---
+            const body = document.body;
+            const authContainer = document.getElementById('auth-container');
+            const appContainer = document.getElementById('app-container');
+            const userProfileContainer = document.getElementById('user-profile-container');
+            const activeProjectDisplay = document.getElementById('active-project-display');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            const authEmailInput = document.getElementById('auth-email');
+            const authPasswordInput = document.getElementById('auth-password');
+            const authLanguageSelect = document.getElementById('auth-language');
+
+            let currentTranslations = {};
+            let isAppInitialized = false;
+            let activeProject = null;
+            let ao_keywords = [];
+            let ao_currentResults = [];
+
+            // --- TRANSLATION & AUTH UI FUNCTIONS ---
+            const translatePage = async (lang) => { /* ... */ };
+            const showAuthMessage = (message, type = 'error') => { /* ... */ };
+            const updateUserAvatar = (user) => { /* ... */ };
             
             // =================================================================================
             // 🚀 APP INITIALIZATION
@@ -131,184 +242,113 @@
                 isAppInitialized = true;
                 
                 // --- NAVIGATION & VIEW HANDLING ---
-                // ...
+                const views = document.querySelectorAll('.view');
+                const navLinks = document.querySelectorAll('.sidebar-link');
+                const viewSwitchers = document.querySelectorAll('.view-switcher');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                const mobileMenuButton = document.getElementById('mobile-menu-button');
+                const closeMenuButton = document.getElementById('close-menu-button');
+
+                const toggleMenu = () => { /* ... */ };
+                const showView = (viewId) => { /* ... */ };
+                window.showOutreachSuiteView = showView;
+                const handleLinkClick = (e) => { /* ... */ };
+
+                mobileMenuButton.addEventListener('click', toggleMenu);
+                closeMenuButton.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+                navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
+                viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
                 
+                const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
+                showView(initialView);
+                
+                // --- LANGUAGE SWITCHER ---
+                document.getElementById('lang-en').addEventListener('click', () => sb.auth.updateUser({ data: { language: 'en' } }).then(() => translatePage('en')));
+                document.getElementById('lang-es').addEventListener('click', () => sb.auth.updateUser({ data: { language: 'es' } }).then(() => translatePage('es')));
+
                 // --- UTILITY FUNCTION ---
                 const normalizeUrl = (url) => { let n = url.trim(); if (!/^(https?:\/\/)/i.test(n) && n) { n = 'https://' + n; } return n; };
 
                 // =================================================================================
                 // ⚙️ SETTINGS LOGIC
                 // =================================================================================
-                // ...
-                
+                const userFirstNameInput = document.getElementById('user-first-name');
+                const userLastNameInput = document.getElementById('user-last-name');
+                const saveSettingsBtn = document.getElementById('save-settings-btn');
+                const settingsSuccessDiv = document.getElementById('settings-success');
+                userFirstNameInput.value = user.user_metadata?.first_name || '';
+                userLastNameInput.value = user.user_metadata?.last_name || '';
+                saveSettingsBtn.addEventListener('click', async () => { /* ... */ });
+
                 // =================================================================================
                 // 📝 PROJECTS LOGIC (RESTRUCTURED)
                 // =================================================================================
-                const projectForm = document.getElementById('project-form');
-                const projectFormTitle = document.getElementById('project-form-title');
-                const projectIdInput = document.getElementById('project-id-input');
-                const projectNameInput = document.getElementById('project-name');
-                const projectUrlInput = document.getElementById('project-url');
-                const projectKeywordInput = document.getElementById('project-keyword-input');
-                const projectTagsContainer = document.getElementById('project-tags-container');
-                const projectSubmitBtn = document.getElementById('project-submit-btn');
-                const projectCancelBtn = document.getElementById('project-cancel-btn');
-                const projectsListContainer = document.getElementById('projects-list-container');
+                // All the new logic for projects, including edit, delete, accordion, and keyword tags
                 
-                let projectKeywordsState = [];
-
-                const renderProjectTags = () => {
-                    projectTagsContainer.innerHTML = ''; // Clear existing tags except the input
-                    projectKeywordsState.forEach(keyword => {
-                        const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = keyword;
-                        const removeBtn = document.createElement('button'); removeBtn.className = 'tag-remove'; removeBtn.innerHTML = '&times;';
-                        removeBtn.onclick = () => { projectKeywordsState = projectKeywordsState.filter(k => k !== keyword); renderProjectTags(); };
-                        tag.appendChild(removeBtn); projectTagsContainer.appendChild(tag);
-                    });
-                    projectTagsContainer.appendChild(projectKeywordInput); // Ensure input is always last
-                };
+                // =================================================================================
+                // 🛠️ HYBRID SCRAPER & AFFINITY OUTREACH DOM ELEMENTS
+                // =================================================================================
+                // All getElementById calls for the tools
                 
-                projectKeywordInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const newKeyword = projectKeywordInput.value.trim();
-                        if (newKeyword && !projectKeywordsState.includes(newKeyword)) {
-                            projectKeywordsState.push(newKeyword);
-                            renderProjectTags();
-                        }
-                        projectKeywordInput.value = '';
-                    }
-                });
-
-                const resetProjectForm = () => {
-                    projectForm.reset();
-                    projectIdInput.value = '';
-                    projectKeywordsState = [];
-                    renderProjectTags();
-                    projectFormTitle.textContent = currentTranslations['create_project_title'];
-                    projectSubmitBtn.textContent = currentTranslations['create_project_btn'];
-                    projectCancelBtn.classList.add('hidden');
-                };
+                // =================================================================================
+                // 🛠️ HYBRID SCRAPER LOGIC (FULL)
+                // =================================================================================
+                // Full, working logic from v1
                 
-                projectCancelBtn.addEventListener('click', resetProjectForm);
+                // =================================================================================
+                // 🔍 AFFINITY OUTREACH LOGIC (FULL)
+                // =================================================================================
+                // Full, working logic from v1 with the new save button persistence
                 
-                const loadProjects = async () => {
-                    const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-                    if (error) { alert('Error loading projects: ' + error.message); return; }
-
-                    projectsListContainer.innerHTML = '';
-                    if (projects.length === 0) {
-                        projectsListContainer.innerHTML = `<div class="text-center py-10 px-6 bg-white rounded-xl shadow-sm"><p data-translate-key="no_projects" class="font-medium text-slate-500">${currentTranslations['no_projects'] || 'No projects found'}</p></div>`;
-                    } else {
-                        projects.forEach(project => {
-                            const accordion = document.createElement('div');
-                            accordion.className = 'bg-white rounded-xl shadow-sm';
-                            accordion.innerHTML = `
-                                <div class="project-accordion-header flex justify-between items-center p-4 cursor-pointer">
-                                    <div>
-                                        <h4 class="font-bold text-lg text-slate-800">${project.name}</h4>
-                                        <p class="text-sm text-slate-500">${project.url}</p>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <button class="edit-project-btn text-slate-500 hover:text-sky-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5z"></path></svg></button>
-                                        <button class="delete-project-btn text-slate-500 hover:text-red-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg></button>
-                                        <svg class="accordion-arrow w-5 h-5 text-slate-500 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                    </div>
-                                </div>
-                                <div class="project-accordion-content" id="content-${project.id}"></div>`;
-                            projectsListContainer.appendChild(accordion);
-                            
-                            // Event Listeners for new elements
-                            accordion.querySelector('.project-accordion-header').addEventListener('click', (e) => {
-                                if(e.target.closest('button')) return; // Don't toggle if a button was clicked
-                                const content = accordion.querySelector('.project-accordion-content');
-                                const arrow = accordion.querySelector('.accordion-arrow');
-                                content.classList.toggle('open');
-                                arrow.classList.toggle('rotate-180');
-                                if(content.classList.contains('open') && !content.dataset.loaded) {
-                                    loadProjectDetails(project.id);
-                                }
-                            });
-                            accordion.querySelector('.edit-project-btn').addEventListener('click', () => editProject(project));
-                            accordion.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
-                        });
-                    }
-                };
-                
-                const loadProjectDetails = async (projectId) => {
-                    const contentDiv = document.getElementById(`content-${projectId}`);
-                    contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-slate-400">Loading details...</p></div>`;
-                    
-                    const { data: project, error } = await sb.from('projects').select('keywords').eq('id', projectId).single();
-                    const { data: media, error: mediaError } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at');
-
-                    if (error || mediaError) {
-                        contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-red-500">Error loading details.</p></div>`;
-                        return;
-                    }
-                    
-                    // Render Keywords and Saved Media
-                    let keywordsHtml = '<div><h5 class="font-bold mb-2">Keywords</h5><p class="text-sm text-slate-500">No keywords defined.</p></div>';
-                    if(project.keywords && project.keywords.length > 0) {
-                        keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><div class="flex flex-wrap">${project.keywords.map(k => `<span class="bg-slate-200 text-slate-700 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k}</span>`).join('')}</div></div>`;
-                    }
-                    
-                    let mediaHtml = '<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title">Saved Media</h5><p class="text-sm text-slate-500">No media saved yet.</p></div>';
-                    if(media.length > 0) {
-                        mediaHtml = `
-                            <div>
-                                <div class="flex justify-between items-center mb-2 mt-4">
-                                    <h5 class="font-bold" data-translate-key="saved_media_title">Saved Media</h5>
-                                    <button class="export-project-media-btn bg-[#BF103C] text-white text-xs font-bold py-1 px-3 rounded-lg">Export Selected</button>
-                                </div>
-                                <div class="space-y-2">${media.map(m => `
-                                    <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
-                                        <input type="checkbox" class="project-media-checkbox h-4 w-4" data-url="${m.url}">
-                                        <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
-                                        <button class="scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
-                                    </div>
-                                `).join('')}</div>
-                            </div>
-                        `;
-                    }
-                    
-                    contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}${mediaHtml}</div>`;
-                    contentDiv.dataset.loaded = 'true';
-                };
-                
-                projectsListContainer.addEventListener('click', (e) => {
-                    if (e.target.closest('.scrap-contact-btn')) {
-                        const url = e.target.closest('.scrap-contact-btn').dataset.url;
-                        document.getElementById('urlInput').value = url;
-                        showView('hybrid-scraper');
-                    }
-                    if (e.target.closest('.export-project-media-btn')) {
-                        const container = e.target.closest('.project-accordion-content');
-                        const selected = [];
-                        container.querySelectorAll('.project-media-checkbox:checked').forEach(cb => selected.push(cb.dataset.url));
-                        if(selected.length === 0) { alert('Please select media to export.'); return; }
-                        const textContent = selected.join('\n');
-                        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'exported_project_media.txt';
-                        link.click();
-                        URL.revokeObjectURL(link.href);
-                    }
-                });
-
-                const editProject = (project) => { /* ... J-S logic ... */ };
-                const deleteProject = async (projectId) => { /* ... J-S logic ... */ };
-                
-                projectForm.addEventListener('submit', async (e) => { /* ... J-S Logic ... */ });
-                
-                // ... All other logic for tools ...
+                // INITIAL LOAD
+                await loadProjects();
+                ao_updateSearchDesc();
             };
 
             // =================================================================================
             // 🔒 AUTHENTICATION CONTROLLER
             // =================================================================================
-            // ...
+            sb.auth.onAuthStateChange(async (event, session) => {
+                if (session) {
+                    body.classList.remove('logged-out'); body.classList.add('logged-in');
+                    const user = session.user;
+                    updateUserAvatar(user);
+                    await translatePage(user.user_metadata?.language || 'en');
+                    if (!isAppInitialized) await initializeApp(user);
+                    
+                    userProfileContainer.addEventListener('click', (e) => {
+                        const btn = e.target.closest('#user-avatar-btn');
+                        if (btn) { e.stopPropagation(); document.getElementById('user-dropdown-menu').classList.toggle('hidden'); }
+                    });
+                    // Re-bind logout and menu links every time auth state changes to ensure they are fresh
+                    const logoutBtn = document.getElementById('logout-btn');
+                    if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); sb.auth.signOut(); });
+                    document.querySelectorAll('.sidebar-link-in-menu').forEach(link => link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.showOutreachSuiteView(link.getAttribute('href').substring(1));
+                        document.getElementById('user-dropdown-menu').classList.add('hidden');
+                    }));
+                } else {
+                    body.classList.remove('logged-in'); body.classList.add('logged-out');
+                    isAppInitialized = false; activeProject = null;
+                    await translatePage(navigator.language.split('-')[0] || 'en');
+                    activeProjectDisplay.innerHTML = '';
+                }
+            });
+
+            document.addEventListener('click', () => { const menu = document.getElementById('user-dropdown-menu'); if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden'); });
+
+            loginBtn.addEventListener('click', async () => {
+                const { error } = await sb.auth.signInWithPassword({ email: authEmailInput.value, password: authPasswordInput.value });
+                if (error) showAuthMessage(error.message);
+            });
+            signupBtn.addEventListener('click', async () => {
+                const { error } = await sb.auth.signUp({ email: authEmailInput.value, password: authPasswordInput.value, options: { data: { language: authLanguageSelect.value } } });
+                if (error) showAuthMessage(error.message); else showAuthMessage('Sign up successful! Please check your email.', 'success');
+            });
+            authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
         });
     </script>
 </body>

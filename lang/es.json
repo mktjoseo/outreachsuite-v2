@@ -50,7 +50,7 @@
   "create_project_title": "Crear Nuevo Proyecto",
   "project_name_label": "Nombre del Proyecto",
   "project_name_placeholder": "ej: Campaña de Lanzamiento para Cliente X",
-  "project_url_placeholder": "ej: https://cliente-x.com",
+  "project_url_placeholder": "dominio.com",
   "project_keywords_label": "Keywords",
   "create_project_btn": "Crear Proyecto",
   "no_projects": "No se encontraron proyectos. ¡Crea uno para empezar!",
