@@ -27,9 +27,14 @@
         .category-tag { font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 0.375rem; font-weight: 600; text-transform: uppercase; }
         .dropdown-menu { display: none; }
         .dropdown:hover .dropdown-menu { display: block; }
+
+        /* Corrección definitiva para ocultar/mostrar la app */
+        body.logged-out #app-container { display: none; }
+        body.logged-in #auth-container { display: none; }
+        body.logged-in #app-container { display: flex; }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 logged-out">
 
     <div id="auth-container" class="min-h-screen flex items-center justify-center bg-slate-50">
         <div class="p-8 bg-white rounded-xl shadow-lg max-w-md w-full">
@@ -54,7 +59,7 @@
         </div>
     </div>
     
-    <div id="app-container" class="relative min-h-screen md:flex hidden">
+    <div id="app-container" class="relative min-h-screen md:flex">
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
         <aside id="sidebar" class="w-64 bg-slate-800 text-white flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="flex items-center justify-between p-6 text-2xl font-bold border-b border-slate-700">
@@ -208,11 +213,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- INICIALIZACIÓN DE SUPABASE ---
             const { createClient } = supabase;
             const SUPABASE_URL = 'https://xdrzsunisujjrghjntnn.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkcnpzdW5pc3VqanJnaGpudG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYyODcsImV4cCI6MjA2ODg0MjI4N30.jAZA8q2niY7MTO7jolyKAPiFcRVmKu2-ObSrCoXfhGk';
             const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+            // --- REFERENCIAS A ELEMENTOS GLOBALES DEL DOM ---
+            const body = document.body;
             const authContainer = document.getElementById('auth-container');
             const appContainer = document.getElementById('app-container');
             const userProfileContainer = document.getElementById('user-profile-container');
@@ -224,19 +232,17 @@
             const authErrorDiv = document.getElementById('auth-error');
             const authSuccessDiv = document.getElementById('auth-success');
 
+            // --- VARIABLES DE ESTADO ---
             let currentTranslations = {};
             let isAppInitialized = false;
 
+            // --- FUNCIONES AUXILIARES ---
             const showAuthMessage = (message, type = 'error') => {
                 authSuccessDiv.classList.add('hidden');
                 authErrorDiv.classList.add('hidden');
-                if (type === 'error') {
-                    authErrorDiv.textContent = message;
-                    authErrorDiv.classList.remove('hidden');
-                } else {
-                    authSuccessDiv.textContent = message;
-                    authSuccessDiv.classList.remove('hidden');
-                }
+                const targetDiv = type === 'error' ? authErrorDiv : authSuccessDiv;
+                targetDiv.textContent = message;
+                targetDiv.classList.remove('hidden');
             };
 
             const translatePage = async (lang) => {
@@ -262,23 +268,28 @@
 
                     const langEnBtn = document.getElementById('lang-en');
                     const langEsBtn = document.getElementById('lang-es');
-                    if(targetLang === 'en') {
-                        langEnBtn.classList.add('bg-white', 'text-slate-800');
-                        langEsBtn.classList.remove('bg-white', 'text-slate-800');
-                    } else {
-                        langEsBtn.classList.add('bg-white', 'text-slate-800');
-                        langEnBtn.classList.remove('bg-white', 'text-slate-800');
+                    if(langEnBtn && langEsBtn) {
+                        if(targetLang === 'en') {
+                            langEnBtn.classList.add('bg-white', 'text-slate-800');
+                            langEsBtn.classList.remove('bg-white', 'text-slate-800');
+                        } else {
+                            langEsBtn.classList.add('bg-white', 'text-slate-800');
+                            langEnBtn.classList.remove('bg-white', 'text-slate-800');
+                        }
                     }
-
                 } catch (error) {
                     console.error('Translation error:', error);
                 }
             };
             
+            // --- FUNCIÓN PRINCIPAL DE LA APLICACIÓN ---
             const initializeApp = () => {
                 if (isAppInitialized) return;
                 isAppInitialized = true;
                 
+                // =================================================================================
+                // 🚀 NAVEGACIÓN GLOBAL Y MANEJO DE VISTAS
+                // =================================================================================
                 const views = document.querySelectorAll('.view');
                 const navLinks = document.querySelectorAll('.sidebar-link');
                 const viewSwitchers = document.querySelectorAll('.view-switcher');
@@ -341,18 +352,149 @@
                 langEnBtn.addEventListener('click', () => handleLanguageChange('en'));
                 langEsBtn.addEventListener('click', () => handleLanguageChange('es'));
                 
-                // --- HYBRID SCRAPER LOGIC ---
-                // ...
+                // =================================================================================
+                // 🛠️ LÓGICA DE HYBRID SCRAPER
+                // =================================================================================
+                const hs_urlInput = document.getElementById('urlInput');
+                const hs_scrapeBtn = document.getElementById('scrapeBtn');
+                const hs_searchBtnText = document.getElementById('search-btn-text');
+                const hs_logConsole = document.getElementById('log-console');
+                const hs_logContainer = document.getElementById('log-container');
+                const hs_promptContainer = document.getElementById('prompt-container');
+                const hs_promptMessage = document.getElementById('prompt-message');
+                const hs_promptLinks = document.getElementById('prompt-links');
+                const hs_deepScanBtn = document.getElementById('deep-scan-btn');
+                const hs_aiPromptContainer = document.getElementById('ai-prompt-container');
+                const hs_aiPromptTitle = document.getElementById('ai-prompt-title');
+                const hs_askAiBtn = document.getElementById('ask-ai-btn');
+                const hs_resultsContainer = document.getElementById('results');
+                const hs_emailsContainer = document.getElementById('emails-container');
+                const hs_emailList = document.getElementById('emailList');
+                const hs_socialsContainer = document.getElementById('socials-container');
+                const hs_socialList = document.getElementById('socialList');
+                const hs_errorContainer = document.getElementById('error-message');
+                const hs_errorText = document.getElementById('error-text');
+                let hs_foundEmails = new Map(), hs_foundLinks = new Map(), hs_internalLinks = new Set(), hs_targetDomain = '';
+
+                const hs_log = (message, type = 'info') => {
+                    const color = { info: 'text-gray-300', success: 'text-green-400', error: 'text-red-400', warn: 'text-yellow-400', step: 'text-cyan-400 font-bold' };
+                    hs_logContainer.innerHTML += `<p class="${color[type]}"><span class="text-gray-500 mr-2">[${new Date().toLocaleTimeString()}]</span>${message}</p>`;
+                    hs_logContainer.scrollTop = hs_logContainer.scrollHeight;
+                };
+                const hs_resetUI = () => {
+                    hs_logConsole.classList.add('hidden'); hs_logContainer.innerHTML = '';
+                    hs_promptContainer.classList.add('hidden'); hs_aiPromptContainer.classList.add('hidden');
+                    hs_resultsContainer.classList.add('hidden'); hs_errorContainer.classList.add('hidden');
+                    hs_emailsContainer.classList.add('hidden'); hs_socialsContainer.classList.add('hidden');
+                    hs_emailList.innerHTML = ''; hs_socialList.innerHTML = '';
+                    hs_foundEmails.clear(); hs_foundLinks.clear(); hs_internalLinks.clear();
+                    hs_targetDomain = ''; hs_scrapeBtn.disabled = false;
+                    hs_searchBtnText.innerHTML = currentTranslations['hybrid_search_btn'] || 'Search';
+                };
+                const hs_normalizeUrl = (url) => { let n = url.trim(); if (!/^(https?:\/\/)/i.test(n)) { n = 'https://' + n; } return n; };
+                const hs_extractData = (html, sourceUrl) => {
+                    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+                    (html.match(emailRegex) || []).forEach(e => { const c = e.toLowerCase(); if (!/\.(png|jpg|jpeg|gif|svg|webp)$/i.test(c) && !hs_foundEmails.has(c)) { hs_foundEmails.set(c, sourceUrl); } });
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    doc.querySelectorAll('a[href]').forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (!href) return;
+                        if (href.startsWith('mailto:')) { const e = href.substring(7).split('?')[0].toLowerCase(); if (e && !hs_foundEmails.has(e)) hs_foundEmails.set(e, sourceUrl); return; }
+                        try {
+                            const fullUrl = new URL(href, sourceUrl);
+                            const socialKeywords = ['linkedin.com/company', 'twitter.com', 'facebook.com', 'instagram.com', 'wa.me', 'whatsapp.com', 't.me', 'youtube.com'];
+                            const contactKeywords = ['contact', 'about', 'team', 'nosotros', 'contacto', 'acerca', 'impressum'];
+                            if (socialKeywords.some(kw => fullUrl.href.includes(kw))) { if (!hs_foundLinks.has(fullUrl.href)) hs_foundLinks.set(fullUrl.href, sourceUrl); }
+                            else { const lh = fullUrl.hostname.replace('www.', ''); if ((lh === hs_targetDomain || lh.endsWith(`.${hs_targetDomain}`)) && contactKeywords.some(kw => fullUrl.href.toLowerCase().includes(kw))) { hs_internalLinks.add(fullUrl.href); } }
+                        } catch (e) {}
+                    });
+                };
+                const hs_createResultCard = (text, sourceUrl, type) => {
+                    const icons = { email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`, linkedin: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5V8h3zM6.5 6.73c-.966 0-1.75-.79-1.75-1.76s.784-1.76 1.75-1.76 1.75.79 1.75 1.76-.783 1.76-1.75 1.76zM19 19h-3v-5.6c0-1.33-.027-3.03-1.85-3.03-1.85 0-2.136 1.44-2.136 2.93V19h-3V8h2.88v1.32h.04c.4-.76 1.37-1.55 2.84-1.55 3.04 0 3.6 2 3.6 4.6V19z" /></svg>`, twitter: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>`, facebook: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" /></svg>`, default: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>` };
+                    let iconType = 'default';
+                    if (type === 'email') iconType = 'email';
+                    if (text.includes('linkedin.com')) iconType = 'linkedin';
+                    if (text.includes('twitter.com')) iconType = 'twitter';
+                    if (text.includes('facebook.com')) iconType = 'facebook';
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-4 rounded-lg shadow-md flex items-center gap-4 transition-all hover:shadow-lg hover:-translate-y-1';
+                    card.innerHTML = `<div class="flex-shrink-0 w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center">${icons[iconType]}</div><div class="flex-grow overflow-hidden"><a href="${type === 'email' ? 'mailto:' + text : text}" target="_blank" rel="noopener noreferrer" class="text-gray-800 font-semibold truncate block hover:text-sky-600" title="${text}">${text}</a><p class="text-xs text-gray-500 truncate mt-1">Found in: ${sourceUrl === 'Gemini AI' ? 'Gemini AI' : new URL(sourceUrl).hostname}</p></div><button class="copy-btn ml-auto bg-gray-200 text-gray-700 text-sm font-semibold py-2 px-3 rounded-md hover:bg-gray-300 transition-colors flex-shrink-0">Copy</button>`;
+                    card.querySelector('.copy-btn').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const btn = e.currentTarget; navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); }).catch(err => { btn.textContent = 'Error'; console.error('Failed to copy!', err); }); });
+                    return card;
+                };
+                const hs_displayResults = () => { hs_resultsContainer.classList.remove('hidden'); hs_emailList.innerHTML = ''; if (hs_foundEmails.size > 0) { hs_emailsContainer.classList.remove('hidden'); hs_foundEmails.forEach((source, email) => hs_emailList.appendChild(hs_createResultCard(email, source, 'email'))); } hs_socialList.innerHTML = ''; if (hs_foundLinks.size > 0) { hs_socialsContainer.classList.remove('hidden'); hs_foundLinks.forEach((source, link) => hs_socialList.appendChild(hs_createResultCard(link, source, 'link'))); } };
+                const hs_showError = (message) => { hs_errorContainer.classList.remove('hidden'); hs_errorText.textContent = message; hs_scrapeBtn.disabled = false; hs_searchBtnText.innerHTML = currentTranslations['hybrid_search_btn'] || 'Search'; };
+                hs_scrapeBtn.addEventListener('click', async () => { /* ... */ });
+                hs_deepScanBtn.addEventListener('click', async () => { /* ... */ });
+                hs_askAiBtn.addEventListener('click', async () => { /* ... */ });
                 
-                // --- AFFINITY OUTREACH LOGIC ---
-                // ...
+                // =================================================================================
+                // 🔍 LÓGICA DE AFFINITY OUTREACH
+                // =================================================================================
+                const ao_projectUrlInput = document.getElementById('ao-projectUrl');
+                const ao_generateBtn = document.getElementById('ao-generateKeywordsButton');
+                const ao_generateBtnText = document.getElementById('ao-generate-btn-text');
+                const ao_generateLoader = document.getElementById('ao-generate-loader');
+                const ao_keywordLogConsole = document.getElementById('ao-keyword-log-console');
+                const ao_keywordLogContainer = document.getElementById('ao-keyword-log-container');
+                const ao_keywordError = document.getElementById('ao-keyword-errorMessage');
+                const ao_keywordErrorText = document.getElementById('ao-keyword-errorText');
+                const ao_searchForm = document.getElementById('ao-searchForm');
+                const ao_tagsContainer = document.getElementById('ao-tags-container');
+                const ao_keywordInput = document.getElementById('ao-keyword-input');
+                const ao_addKeywordBtn = document.getElementById('ao-add-keyword-btn');
+                const ao_searchTypeSelect = document.getElementById('ao-searchType');
+                const ao_searchTypeDesc = document.getElementById('ao-searchType-description');
+                const ao_countrySelect = document.getElementById('ao-country');
+                const ao_langSelect = document.getElementById('ao-language');
+                const ao_searchButton = document.getElementById('ao-searchButton');
+                const ao_logConsole = document.getElementById('ao-log-console');
+                const ao_logContainer = document.getElementById('ao-log-container');
+                const ao_loader = document.getElementById('ao-loader');
+                const ao_errorMessage = document.getElementById('ao-errorMessage');
+                const ao_errorText = document.getElementById('ao-errorText');
+                const ao_resultsArea = document.getElementById('ao-resultsArea');
+                const ao_resultsList = document.getElementById('ao-resultsList');
+                const ao_resultsSummary = document.getElementById('ao-resultsSummary');
+                const ao_exportButton = document.getElementById('ao-exportButton');
+                const ao_sortButton = document.getElementById('ao-sortButton');
+                let ao_keywords = [], ao_currentResults = [];
+                const ao_log = (container, message, type = 'info') => {
+                    const color = { info: 'text-yellow-400', success: 'text-green-400', error: 'text-red-400' };
+                    container.innerHTML += `<p class="${color[type]}"><span class="text-gray-500 mr-2">[${new Date().toLocaleTimeString()}]</span>${message}</p>`;
+                    container.scrollTop = container.scrollHeight;
+                };
+                const ao_renderTags = () => { /* ... */ };
+                const ao_addCurrentKeyword = () => { /* ... */ };
+                ao_addKeywordBtn.addEventListener('click', ao_addCurrentKeyword);
+                ao_keywordInput.addEventListener('keydown', (e) => { /* ... */ });
+                const ao_addKeywordsToTagInput = (newKeywords) => { /* ... */ };
+                const ao_searchTypeDescriptions = {
+                    top_authority: "Finds biggest sites (Wikipedia, major news). Good for understanding main players, but hard for outreach.",
+                    established: "Finds well-known blogs and niche sites. The sweet spot for quality backlink opportunities.",
+                    rising_stars: "Finds newer or smaller blogs gaining traction. Often more open to collaboration and can be hidden gems."
+                };
+                const ao_updateSearchDesc = () => { ao_searchTypeDesc.textContent = ao_searchTypeDescriptions[ao_searchTypeSelect.value]; };
+                ao_searchTypeSelect.addEventListener('change', ao_updateSearchDesc);
+                ao_updateSearchDesc();
+                const ao_setGenerateLoading = (isLoading) => { /* ... */ };
+                const ao_setSearchLoading = (isLoading) => { /* ... */ };
+                const ao_showKeywordError = (message) => { /* ... */ };
+                const ao_showSearchError = (message) => { /* ... */ };
+                const ao_normalizeUrl = (url) => { /* ... */ };
+                ao_generateBtn.addEventListener('click', async () => { /* ... */ });
+                ao_searchForm.addEventListener('submit', async (e) => { /* ... */ });
+                const ao_displayResults = (results) => { /* ... */ };
+                ao_sortButton.addEventListener('click', () => { /* ... */ });
+                ao_exportButton.addEventListener('click', () => { /* ... */ });
             };
 
+            // --- CONTROLADOR PRINCIPAL DE AUTENTICACIÓN ---
             sb.auth.onAuthStateChange(async (event, session) => {
                 if (session) {
-                    authContainer.classList.add('hidden');
-                    appContainer.classList.remove('hidden');
-                    
+                    body.classList.remove('logged-out');
+                    body.classList.add('logged-in');
                     const user = session.user;
                     const userLanguage = user.user_metadata.language || 'en';
                     const userInitials = user.email.substring(0, 2).toUpperCase();
@@ -364,20 +506,20 @@
                             <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-translate-key="logout_btn">Logout</a>
                         </div>
                     `;
-                    document.getElementById('logout-btn').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        sb.auth.signOut();
-                    });
-                    
-                    // Asegurarse de que los nuevos enlaces del dropdown funcionen
-                    userProfileContainer.querySelectorAll('.sidebar-link').forEach(link => link.addEventListener('click', handleLinkClick));
+                    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); sb.auth.signOut(); });
                     
                     await translatePage(userLanguage);
                     
                     initializeApp();
+                    // Asegura que los enlaces del nuevo menú funcionen después de inicializar la app
+                    userProfileContainer.querySelectorAll('.sidebar-link').forEach(link => link.addEventListener('click', window.showOutreachSuiteView ? (e) => {
+                        e.preventDefault();
+                        const viewId = e.currentTarget.getAttribute('href').substring(1);
+                        window.showOutreachSuiteView(viewId);
+                    } : () => {}));
                 } else {
-                    authContainer.classList.remove('hidden');
-                    appContainer.classList.add('hidden');
+                    body.classList.remove('logged-in');
+                    body.classList.add('logged-out');
                     userProfileContainer.innerHTML = '';
                     const browserLang = navigator.language.split('-')[0];
                     authLanguageSelect.value = (browserLang === 'es') ? 'es' : 'en';
@@ -386,6 +528,7 @@
                 }
             });
 
+            // --- EVENTOS DEL FORMULARIO DE LOGIN/SIGNUP ---
             loginBtn.addEventListener('click', async () => {
                 const { error } = await sb.auth.signInWithPassword({
                     email: authEmailInput.value,
@@ -393,7 +536,6 @@
                 });
                 if (error) showAuthMessage(error.message);
             });
-
             signupBtn.addEventListener('click', async () => {
                 const { data, error } = await sb.auth.signUp({
                     email: authEmailInput.value,
@@ -406,7 +548,6 @@
                     showAuthMessage('Sign up successful! Please check your email to confirm your account (if enabled).', 'success');
                 }
             });
-
             authLanguageSelect.addEventListener('change', () => {
                 translatePage(authLanguageSelect.value);
             });
