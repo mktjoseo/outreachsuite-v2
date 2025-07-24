@@ -25,6 +25,8 @@
         .tag-remove { margin-left: 0.5rem; width: 1rem; height: 1rem; border-radius: 50%; background-color: rgba(0,0,0,0.2); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; }
         .tag-remove:hover { background-color: rgba(0,0,0,0.4); }
         .category-tag { font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 0.375rem; font-weight: 600; text-transform: uppercase; }
+        .dropdown-menu { display: none; }
+        .dropdown:hover .dropdown-menu { display: block; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -66,18 +68,24 @@
                     <li><a href="#home" id="nav-home" class="sidebar-link" data-translate-key="nav_home"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>Home</a></li>
                     <li><a href="#affinity-outreach" id="nav-affinity-outreach" class="sidebar-link" data-translate-key="nav_affinity"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5a1.5 1.5 0 00-1.293.707l-7 12a1.5 1.5 0 001.293 2.293h14a1.5 1.5 0 001.293-2.293l-7-12A1.5 1.5 0 0010 1.5zM9 6a1 1 0 112 0 1 1 0 01-2 0zm1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" /><circle cx="10" cy="3" r="1.5" /><circle cx="3" cy="15" r="1.5" /><circle cx="17" cy="15" r="1.5" /></svg>Affinity Outreach</a></li>
                     <li><a href="#hybrid-scraper" id="nav-hybrid-scraper" class="sidebar-link" data-translate-key="nav_hybrid"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>Hybrid Scraper</a></li>
-                    <li><a href="#settings" id="nav-settings" class="sidebar-link" data-translate-key="nav_settings"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg>Settings</a></li>
                 </ul>
             </nav>
-            <div id="user-profile-container" class="p-4 border-t border-slate-700"></div>
-            <div class="p-4 mt-auto border-t border-slate-700"><p data-translate-key="made_by" class="text-xs text-slate-400 text-center">Made with ♥ by Eduardo Bortolotti L.</p></div>
+            <div class="p-4 mt-auto border-t border-slate-700">
+                <div class="flex items-center justify-center gap-2">
+                    <button id="lang-es" class="px-3 py-1 text-sm rounded-md transition-colors">Español</button>
+                    <button id="lang-en" class="px-3 py-1 text-sm rounded-md transition-colors">English</button>
+                </div>
+            </div>
         </aside>
 
         <div class="flex-1 flex flex-col">
-            <header class="p-4 md:hidden bg-white shadow-md">
-                <button id="mobile-menu-button" class="text-slate-800">
+            <header class="bg-white shadow-md p-4 flex justify-between items-center z-10">
+                <button id="mobile-menu-button" class="text-slate-800 md:hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
+                <div class="flex-1"></div>
+                <div id="user-profile-container" class="relative dropdown">
+                    </div>
             </header>
             <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
                 
@@ -173,14 +181,6 @@
                         <div id="settings-success" class="hidden bg-green-100 text-green-700 text-sm p-3 rounded-lg mb-6"></div>
                         <div class="space-y-8">
                             <div class="bg-white p-6 rounded-xl shadow-lg">
-                                <h3 data-translate-key="language_settings_title" class="text-xl font-bold text-slate-800 mb-4">Language Settings</h3>
-                                <label for="user-language-select" data-translate-key="language_label" class="block text-sm font-medium text-[#39414E] mb-2">Language</label>
-                                <select id="user-language-select" class="w-full bg-gray-100 border border-gray-300 text-[#39414E] rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C] transition">
-                                    <option value="en">English</option>
-                                    <option value="es">Español</option>
-                                </select>
-                            </div>
-                            <div class="bg-white p-6 rounded-xl shadow-lg">
                                 <h3 data-translate-key="api_keys_title" class="text-xl font-bold text-slate-800 mb-2">API Keys</h3>
                                 <p data-translate-key="api_keys_subtitle" class="text-sm text-slate-500 mb-6">These keys will be used for all searches. This feature will be enabled in a future update.</p>
                                 <div class="space-y-4">
@@ -198,9 +198,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex justify-end">
-                                <button id="save-settings-btn" data-translate-key="save_settings_btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition">Save Settings</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -216,7 +213,6 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkcnpzdW5pc3VqanJnaGpudG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYyODcsImV4cCI6MjA2ODg0MjI4N30.jAZA8q2niY7MTO7jolyKAPiFcRVmKu2-ObSrCoXfhGk';
             const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // --- MANEJO DE ESTADO Y UI PRINCIPAL ---
             const authContainer = document.getElementById('auth-container');
             const appContainer = document.getElementById('app-container');
             const userProfileContainer = document.getElementById('user-profile-container');
@@ -263,6 +259,17 @@
                         }
                     });
                     document.title = translations['app_title'] || 'OutreachSuite';
+
+                    const langEnBtn = document.getElementById('lang-en');
+                    const langEsBtn = document.getElementById('lang-es');
+                    if(targetLang === 'en') {
+                        langEnBtn.classList.add('bg-white', 'text-slate-800');
+                        langEsBtn.classList.remove('bg-white', 'text-slate-800');
+                    } else {
+                        langEsBtn.classList.add('bg-white', 'text-slate-800');
+                        langEnBtn.classList.remove('bg-white', 'text-slate-800');
+                    }
+
                 } catch (error) {
                     console.error('Translation error:', error);
                 }
@@ -271,10 +278,7 @@
             const initializeApp = () => {
                 if (isAppInitialized) return;
                 isAppInitialized = true;
-
-                // --- LÓGICA DE LA APLICACIÓN (SOLO SE EJECUTA UNA VEZ) ---
                 
-                // Elementos de la App
                 const views = document.querySelectorAll('.view');
                 const navLinks = document.querySelectorAll('.sidebar-link');
                 const viewSwitchers = document.querySelectorAll('.view-switcher');
@@ -282,77 +286,94 @@
                 const overlay = document.getElementById('sidebar-overlay');
                 const mobileMenuButton = document.getElementById('mobile-menu-button');
                 const closeMenuButton = document.getElementById('close-menu-button');
-                const userLanguageSelect = document.getElementById('user-language-select');
-                const saveSettingsBtn = document.getElementById('save-settings-btn');
-                const settingsSuccessDiv = document.getElementById('settings-success');
+                const langEnBtn = document.getElementById('lang-en');
+                const langEsBtn = document.getElementById('lang-es');
 
-                // Lógica de Navegación
-                const toggleMenu = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); };
+                const toggleMenu = () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    overlay.classList.toggle('hidden');
+                };
+
                 const showView = (viewId) => {
                     const targetView = document.getElementById(viewId + '-view');
                     views.forEach(view => view.classList.add('hidden'));
-                    if (targetView) { targetView.classList.remove('hidden'); } 
-                    else { document.getElementById('home-view').classList.remove('hidden'); }
-                    navLinks.forEach(link => { link.classList.toggle('active', link.getAttribute('href') === '#' + viewId); });
+                    if (targetView) {
+                        targetView.classList.remove('hidden');
+                    } else {
+                        document.getElementById('home-view').classList.remove('hidden');
+                    }
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === '#' + viewId);
+                    });
                     window.scrollTo(0, 0); 
                 };
+                
                 const handleLinkClick = (e) => {
                     e.preventDefault();
                     const viewId = e.currentTarget.getAttribute('href').substring(1);
                     window.location.hash = viewId;
                     showView(viewId);
-                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) { toggleMenu(); }
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                        toggleMenu();
+                    }
                 };
+
                 mobileMenuButton.addEventListener('click', toggleMenu);
                 closeMenuButton.addEventListener('click', toggleMenu);
                 overlay.addEventListener('click', toggleMenu);
                 navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
                 viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
+                
                 const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
                 showView(initialView);
+                
                 window.showOutreachSuiteView = showView;
 
-                // Lógica de Settings
-                saveSettingsBtn.addEventListener('click', async () => {
-                    const selectedLang = userLanguageSelect.value;
-                    settingsSuccessDiv.classList.add('hidden');
-                    const { error } = await sb.auth.updateUser({ data: { language: selectedLang } });
+                const handleLanguageChange = async (lang) => {
+                    const { error } = await sb.auth.updateUser({ data: { language: lang } });
                     if (error) {
-                        alert('Error saving settings: ' + error.message);
+                        alert('Error saving language: ' + error.message);
                     } else {
-                        settingsSuccessDiv.textContent = currentTranslations['settings_saved_success'] || 'Settings saved successfully!';
-                        settingsSuccessDiv.classList.remove('hidden');
-                        setTimeout(() => settingsSuccessDiv.classList.add('hidden'), 3000);
-                        await translatePage(selectedLang);
+                        await translatePage(lang);
                     }
-                });
+                };
 
-                // --- LÓGICA DE HYBRID SCRAPER ---
-                // ... (El código completo que ya funcionaba)
-
-                // --- LÓGICA DE AFFINITY OUTREACH ---
-                // ... (El código completo que ya funcionaba)
+                langEnBtn.addEventListener('click', () => handleLanguageChange('en'));
+                langEsBtn.addEventListener('click', () => handleLanguageChange('es'));
+                
+                // --- HYBRID SCRAPER LOGIC ---
+                // ...
+                
+                // --- AFFINITY OUTREACH LOGIC ---
+                // ...
             };
 
-            // --- CONTROLADOR DE AUTENTICACIÓN ---
             sb.auth.onAuthStateChange(async (event, session) => {
                 if (session) {
                     authContainer.classList.add('hidden');
                     appContainer.classList.remove('hidden');
+                    
                     const user = session.user;
                     const userLanguage = user.user_metadata.language || 'en';
+                    const userInitials = user.email.substring(0, 2).toUpperCase();
                     
                     userProfileContainer.innerHTML = `
-                        <div class="text-xs text-slate-300 mb-2 truncate">${user.email}</div>
-                        <button id="logout-btn" data-translate-key="logout_btn" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Logout</button>
+                        <button class="w-10 h-10 bg-slate-700 text-white font-bold rounded-full flex items-center justify-center">${userInitials}</button>
+                        <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+                            <a href="#settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 sidebar-link" data-translate-key="nav_settings">Settings</a>
+                            <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-translate-key="logout_btn">Logout</a>
+                        </div>
                     `;
-                    document.getElementById('logout-btn').addEventListener('click', () => sb.auth.signOut());
+                    document.getElementById('logout-btn').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        sb.auth.signOut();
+                    });
+                    
+                    // Asegurarse de que los nuevos enlaces del dropdown funcionen
+                    userProfileContainer.querySelectorAll('.sidebar-link').forEach(link => link.addEventListener('click', handleLinkClick));
                     
                     await translatePage(userLanguage);
                     
-                    const userLanguageSelect = document.getElementById('user-language-select');
-                    if (userLanguageSelect) userLanguageSelect.value = userLanguage;
-
                     initializeApp();
                 } else {
                     authContainer.classList.remove('hidden');
@@ -365,7 +386,6 @@
                 }
             });
 
-            // --- EVENT LISTENERS DEL FORMULARIO DE LOGIN ---
             loginBtn.addEventListener('click', async () => {
                 const { error } = await sb.auth.signInWithPassword({
                     email: authEmailInput.value,

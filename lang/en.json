@@ -3,6 +3,7 @@
   "nav_home": "Home",
   "nav_affinity": "Affinity Outreach",
   "nav_hybrid": "Hybrid Scraper",
+  "nav_settings": "Settings",
   "made_by": "Made with ♥ by Eduardo Bortolotti L.",
   "home_title": "Select a function",
   "home_subtitle": "Choose one of the available tools to start.",
@@ -11,7 +12,7 @@
   "hybrid_card_title": "Hybrid Scraper",
   "hybrid_card_desc": "Scans any website to find contact emails and social media links.",
   "hybrid_title": "Hybrid Scraper",
-  "hybrid_subtitle": "Uncover contact information from any website. This tool performs a multi-level scan to find emails and social links. If the initial search yields no results, you'll have the option to engage our AI for a deeper, more comprehensive analysis of the entire web.",
+  "hybrid_subtitle": "Uncover contact information from any website.",
   "hybrid_placeholder": "Enter the website URL to investigate...",
   "hybrid_search_btn": "Search",
   "affinity_title": "Affinity Outreach Finder",
@@ -29,6 +30,14 @@
   "search_media_btn": "Search Media",
   "login_title": "Welcome to OutreachSuite",
   "login_subtitle": "Please log in to access the tools.",
-  "login_google_btn": "Log in with Google",
-  "logout_btn": "Logout"
+  "login_btn": "Log In",
+  "signup_btn": "Sign Up",
+  "logout_btn": "Logout",
+  "settings_title": "Settings",
+  "settings_subtitle": "Manage your preferences and API keys.",
+  "language_settings_title": "Language Settings",
+  "api_keys_title": "API Keys",
+  "api_keys_subtitle": "This feature will be enabled in a future update.",
+  "save_settings_btn": "Save Settings",
+  "settings_saved_success": "Settings saved successfully!"
 }
