@@ -156,7 +156,15 @@
                                 <h3 data-translate-key="step2_title" class="text-xl font-bold text-slate-800 mb-4">2. Find Affinity Media</h3>
                                 <form id="ao-searchForm">
                                     <div class="space-y-6">
-                                        <div><label for="ao-keyword-input" data-translate-key="keywords_label" class="block text-sm font-medium text-[#39414E] mb-2">Keywords or Topics</label><div class="flex items-center space-x-2 w-full bg-gray-100 border border-gray-300 rounded-lg p-1"><div id="ao-tags-container" class="flex-grow flex flex-wrap items-center gap-2 pl-2"></div><input type="text" id="ao-keyword-input" data-translate-key="add_keyword_placeholder" class="flex-grow bg-transparent border-none focus:ring-0 text-sm p-1" placeholder="Add keyword & press Enter..."></div></div>
+                                        <div>
+                                            <label for="ao-keyword-input" data-translate-key="keywords_label" class="block text-sm font-medium text-[#39414E] mb-2">Keywords or Topics</label>
+                                            <div class="flex items-center space-x-2 w-full bg-gray-100 border border-gray-300 rounded-lg p-1">
+                                                <div id="ao-tags-container" class="flex-grow flex flex-wrap items-center gap-2">
+                                                    <input type="text" id="ao-keyword-input" data-translate-key="add_keyword_placeholder" class="flex-grow bg-transparent border-none focus:ring-0 text-sm p-1" placeholder="Add keyword & press Enter...">
+                                                </div>
+                                                <button type="button" id="ao-add-keyword-btn" data-translate-key="add_btn" class="flex-shrink-0 bg-[#BF103C] text-white rounded-md h-8 w-14 text-sm font-bold hover:bg-opacity-80">Add</button>
+                                            </div>
+                                        </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"><div><label for="ao-searchType" data-translate-key="search_type_label" class="block text-sm font-medium text-[#39414E] mb-2">Search Type</label><select id="ao-searchType" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]"><option value="top_authority" selected>Top Authority (Top 1-10)</option><option value="established">Established Media (Top 11-30)</option><option value="rising_stars">Rising Stars (Top 31-50)</option></select></div><div id="ao-searchType-description" class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 mt-2 md:mt-0"></div></div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="ao-country" data-translate-key="country_label" class="block text-sm font-medium text-[#39414E] mb-2">Country</label><select id="ao-country" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]"><option value="AR">Argentina</option><option value="AT">Austria</option><option value="BR">Brazil</option><option value="CL">Chile</option><option value="CO">Colombia</option><option value="FR">France</option><option value="DE">Germany</option><option value="IT">Italy</option><option value="MX">Mexico</option><option value="PL">Poland</option><option value="PT">Portugal</option><option value="ES">Spain</option><option value="CH">Switzerland</option><option value="GB">United Kingdom</option><option value="US" selected>USA</option></select></div><div><label for="ao-language" data-translate-key="language_label" class="block text-sm font-medium text-[#39414E] mb-2">Language</label><select id="ao-language" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#BF103C]"><option value="en" selected>English</option><option value="fr">French</option><option value="de">German</option><option value="it">Italian</option><option value="pl">Polish</option><option value="pt">Portuguese</option><option value="es">Spanish</option></select></div></div>
                                         <div class="flex justify-center pt-2"><button type="submit" id="ao-searchButton" data-translate-key="search_media_btn" class="w-full md:w-1/2 bg-[#BF103C] hover:opacity-90 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mr-2" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>Search Media</button></div>
@@ -262,7 +270,7 @@
             const updateUserAvatar = (user) => {
                 let initials = (user.email?.substring(0, 2) || '??').toUpperCase();
                 const meta = user.user_metadata;
-                if (meta?.first_name && meta?.last_name) {
+                if (meta?.first_name && meta?.last_name && meta.first_name.length > 0 && meta.last_name.length > 0) {
                     initials = (meta.first_name[0] + meta.last_name[0]).toUpperCase();
                 }
                 userProfileContainer.innerHTML = `
@@ -402,37 +410,14 @@
                 
                 projectCancelBtn.addEventListener('click', resetProjectForm);
                 
-                const loadSavedMedia = async (projectId, container) => {
-                    container.innerHTML = `<p class="text-slate-400 text-sm p-4">Loading saved media...</p>`;
-                    const { data, error } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
-
-                    if (error) {
-                        container.innerHTML = `<p class="text-red-500 text-sm p-4">Error loading media.</p>`;
-                        return;
-                    }
-                    if(data.length === 0) {
-                        container.innerHTML = `<p class="text-slate-400 text-sm p-4">No media saved to this project yet.</p>`;
-                    } else {
-                        container.innerHTML = `
-                            <div class="flex justify-end mb-2">
-                                <button class="export-project-media-btn bg-[#BF103C] text-white text-xs font-bold py-1 px-3 rounded-lg">Export Selected</button>
-                            </div>
-                            <div class="space-y-2">${data.map(m => `
-                                <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
-                                    <input type="checkbox" class="project-media-checkbox h-4 w-4 text-[#BF103C] border-gray-300 rounded focus:ring-[#BF103C]" data-url="${m.url}">
-                                    <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
-                                    <button class="scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
-                                </div>
-                            `).join('')}</div>`;
-                    }
-                };
-
                 const loadProjectDetails = async (projectId) => {
                     const contentDiv = document.getElementById(`content-${projectId}`);
                     contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-slate-400">Loading details...</p></div>`;
                     
                     const { data: project, error } = await sb.from('projects').select('keywords').eq('id', projectId).single();
-                    if (error) {
+                    const { data: media, error: mediaError } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
+
+                    if (error || mediaError) {
                         contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-red-500">Error loading details.</p></div>`;
                         return;
                     }
@@ -442,9 +427,28 @@
                         keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><div class="flex flex-wrap">${project.keywords.map(k => `<span class="bg-slate-200 text-slate-700 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k}</span>`).join('')}</div></div>`;
                     }
                     
-                    contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}<div id="saved-media-for-${projectId}"></div></div>`;
-                    await loadSavedMedia(projectId, document.getElementById(`saved-media-for-${projectId}`));
+                    let mediaHtml = '<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title">Saved Media</h5><p class="text-sm text-slate-500">No media saved yet.</p></div>';
+                    if(media.length > 0) {
+                        mediaHtml = `
+                            <div>
+                                <div class="flex justify-between items-center mb-2 mt-4">
+                                    <h5 class="font-bold" data-translate-key="saved_media_title">Saved Media</h5>
+                                    <button class="export-project-media-btn bg-[#BF103C] text-white text-xs font-bold py-1 px-3 rounded-lg">Export Selected</button>
+                                </div>
+                                <div class="space-y-2">${media.map(m => `
+                                    <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
+                                        <input type="checkbox" class="project-media-checkbox h-4 w-4 text-[#BF103C] border-gray-300 rounded focus:ring-[#BF103C]" data-url="${m.url}">
+                                        <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
+                                        <button class="scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
+                                    </div>
+                                `).join('')}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}${mediaHtml}</div>`;
                     contentDiv.dataset.loaded = 'true';
+                    translatePage(user.user_metadata?.language || 'en');
                 };
 
                 const deleteProject = async (projectId) => {
@@ -715,7 +719,10 @@
                     body.classList.remove('logged-out'); body.classList.add('logged-in'); const user = session.user;
                     updateUserAvatar(user); await translatePage(user.user_metadata?.language || 'en');
                     if (!isAppInitialized) await initializeApp(user);
-                    userProfileContainer.addEventListener('click', (e) => { const btn = e.target.closest('#user-avatar-btn'); if (btn) { e.stopPropagation(); document.getElementById('user-dropdown-menu').classList.toggle('hidden'); } });
+                    const userProfileButton = document.getElementById('user-avatar-btn');
+                    if (userProfileButton) {
+                        userProfileButton.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('user-dropdown-menu').classList.toggle('hidden'); });
+                    }
                     const logoutBtn = document.getElementById('logout-btn'); if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); sb.auth.signOut(); });
                     document.querySelectorAll('.sidebar-link-in-menu').forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); window.showOutreachSuiteView(link.getAttribute('href').substring(1)); document.getElementById('user-dropdown-menu').classList.add('hidden'); }));
                 } else {
