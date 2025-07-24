@@ -56,5 +56,6 @@
   "open_project_btn": "Open",
   "save_to_project_btn": "Save to Project",
   "media_saved": "Saved ✔️",
-  "select_project_alert": "Please select a project first from the 'Projects' page."
+  "select_project_alert": "Please select a project first from the 'Projects' page.",
+  "saved_media_title": "Saved Media"
 }

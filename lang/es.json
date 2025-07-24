@@ -56,5 +56,6 @@
   "open_project_btn": "Abrir",
   "save_to_project_btn": "Guardar en Proyecto",
   "media_saved": "Guardado ✔️",
-  "select_project_alert": "Por favor, primero selecciona un proyecto desde la página de 'Proyectos'."
+  "select_project_alert": "Por favor, primero selecciona un proyecto desde la página de 'Proyectos'.",
+  "saved_media_title": "Medios Guardados"
 }
