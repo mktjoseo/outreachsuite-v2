@@ -69,19 +69,138 @@
             <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
                 
                 <div id="home-view" class="view">
+                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="home_title">Select a function</h1>
+                    <p class="text-lg text-slate-500 mt-2" data-translate-key="home_subtitle">Choose one of the available tools to start.</p>
+                    <div class="grid md:grid-cols-3 gap-6 mt-8">
+                        <a href="#projects" class="view-switcher bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow border border-gray-200">
+                            <h3 class="text-xl font-bold text-slate-800" data-translate-key="projects_card_title">Project Management</h3>
+                            <p class="text-slate-500 mt-2" data-translate-key="projects_card_desc">Organize your work, manage keywords, and review saved media.</p>
+                        </a>
+                        <a href="#affinity-outreach" class="view-switcher bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow border border-gray-200">
+                            <h3 class="text-xl font-bold text-slate-800" data-translate-key="affinity_card_title">Affinity Outreach</h3>
+                            <p class="text-slate-500 mt-2" data-translate-key="affinity_card_desc">Finds relevant blogs and media for your topic.</p>
+                        </a>
+                        <a href="#hybrid-scraper" class="view-switcher bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow border border-gray-200">
+                             <h3 class="text-xl font-bold text-slate-800" data-translate-key="hybrid_card_title">Hybrid Scraper</h3>
+                             <p class="text-slate-500 mt-2" data-translate-key="hybrid_card_desc">Scans any website to find contact emails.</p>
+                        </a>
                     </div>
+                </div>
 
                 <div id="projects-view" class="view hidden">
+                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="projects_title">My Projects</h1>
+                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="projects_subtitle">Select a project to work on or create a new one.</p>
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-1">
+                            <form id="project-form" class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                                <h3 id="project-form-title" class="text-xl font-bold text-slate-800 mb-4" data-translate-key="create_project_title">Create a New Project</h3>
+                                <input type="hidden" id="project-id-input">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="project-name" class="block text-sm font-medium text-slate-600" data-translate-key="project_name_label">Project Name</label>
+                                        <input type="text" id="project-name" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_name_placeholder" placeholder="e.g., Launch Campaign for Client X">
+                                    </div>
+                                    <div>
+                                        <label for="project-url" class="block text-sm font-medium text-slate-600" data-translate-key="project_url_label">Project URL</label>
+                                        <input type="text" id="project-url" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_url_placeholder" placeholder="domain.com">
+                                    </div>
+                                    <div>
+                                        <label for="project-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="project_keywords_label">Keywords</label>
+                                        <input type="text" id="project-keyword-input" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword & press Enter...">
+                                        <div id="project-tags-container" class="mt-2"></div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit" id="project-submit-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="create_project_btn">Create Project</button>
+                                        <button type="button" id="project-cancel-btn" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg">Cancel</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="projects-list-container" class="lg:col-span-2 space-y-4">
+                            </div>
                     </div>
+                </div>
 
                 <div id="hybrid-scraper-view" class="view hidden">
-                   </div>
+                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="hybrid_title">Hybrid Scraper</h1>
+                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="hybrid_subtitle">Uncover contact information from any website.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="urlInput" class="w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
+                        <button id="scrapeBtn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
+                    </div>
+                    <div id="results-container" class="mt-6"></div>
+                    <div id="log-container-wrapper" class="hidden mt-6 bg-slate-800 text-white rounded-xl p-4">
+                        <h4 class="text-lg font-semibold mb-2 text-slate-300">Process Console</h4>
+                        <div id="log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
 
                 <div id="affinity-outreach-view" class="view hidden">
-                   </div>
+                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="affinity_title">Affinity Outreach Finder</h1>
+                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="affinity_subtitle">Discover relevant media outlets based on real SEO data.</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="step1_title">1. Analyze Your Project for Keywords</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="ao-projectUrl" class="block text-sm font-medium text-slate-600" data-translate-key="project_url_label">Project URL</label>
+                                    <input type="text" id="ao-projectUrl" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" placeholder="domain.com (from your active project)">
+                                </div>
+                                <button id="ao-analyze-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="analyze_btn">Analyze & Generate</button>
+                                <div id="ao-keyword-log-container-wrapper" class="hidden bg-slate-800 text-white rounded-xl p-4">
+                                    <div id="ao-keyword-log-container" class="console-font text-sm h-32 overflow-y-auto pr-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="step2_title">2. Find Affinity Media</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="ao-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="keywords_label">Keywords or Topics</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="ao-keyword-input" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword & press Enter...">
+                                        <button id="ao-add-keyword-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="add_btn">Add</button>
+                                    </div>
+                                    <div id="ao-tags-container" class="mt-2"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div><label for="ao-search-type" data-translate-key="search_type_label">Search Type</label><select id="ao-search-type" class="w-full p-2 mt-1 border rounded-lg bg-white"></select></div>
+                                    <div><label for="ao-country" data-translate-key="country_label">Country</label><select id="ao-country" class="w-full p-2 mt-1 border rounded-lg bg-white"></select></div>
+                                    <div><label for="ao-language" data-translate-key="language_label">Language</label><select id="ao-language" class="w-full p-2 mt-1 border rounded-lg bg-white"></select></div>
+                                </div>
+                                <button id="ao-search-media-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="search_media_btn">Search Media</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ao-results-container" class="mt-8"></div>
+                    <div id="ao-log-container-wrapper" class="hidden mt-6 bg-slate-800 text-white rounded-xl p-4">
+                        <div id="ao-log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
 
                 <div id="settings-view" class="view hidden">
-                   </div>
+                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="settings_title">Settings</h1>
+                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="settings_subtitle">Manage your preferences and API keys.</p>
+                    <div class="max-w-2xl mx-auto space-y-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="profile_settings_title">Profile Information</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label for="user-first-name" data-translate-key="first_name_label">First Name</label><input type="text" id="user-first-name" class="w-full p-2 mt-1 border rounded-lg"></div>
+                                <div><label for="user-last-name" data-translate-key="last_name_label">Last Name</label><input type="text" id="user-last-name" class="w-full p-2 mt-1 border rounded-lg"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                             <h3 class="text-xl font-bold text-slate-800" data-translate-key="api_keys_title">API Keys</h3>
+                             <p class="text-slate-500 text-sm mt-1 mb-4" data-translate-key="api_keys_subtitle">This feature will be enabled in a future update.</p>
+                             <div class="space-y-4">
+                                <div><label class="font-medium text-slate-600">Gemini API Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
+                                <div><label class="font-medium text-slate-600">ScraperAPI Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
+                             </div>
+                        </div>
+                        <div id="settings-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg"></div>
+                        <button id="save-settings-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="save_settings_btn">Save Settings</button>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
