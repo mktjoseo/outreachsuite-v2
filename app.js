@@ -19,7 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeProject = null;
     let ao_keywords = [];
     let ao_currentResults = [];
-    let ao_consoleInterval = null;
+    let consoleInterval = null;
+
+    // --- UNIVERSAL LOGGING FUNCTION ---
+    const logToConsole = (container, message) => {
+        if (!container) return;
+        const formatted = message.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>')
+                               .replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>')
+                               .replace(/WARN/g, '<span class="text-yellow-400">WARN</span>')
+                               .replace(/FATAL/g, '<span class="text-red-400">FATAL</span>');
+        container.innerHTML += `<p>${formatted}</p>`; 
+        container.scrollTop = container.scrollHeight; 
+    };
 
     // --- TRANSLATION & AUTH UI FUNCTIONS ---
     const translatePage = async (lang) => {
@@ -36,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             document.title = translations['app_title'] || 'OutreachSuite';
+            document.getElementById('ao-search-type-desc').textContent = currentTranslations[`search_type_desc_${document.getElementById('ao-search-type').value.split('_')[0]}`] || '';
             const langEnBtn = document.getElementById('lang-en');
             const langEsBtn = document.getElementById('lang-es');
             if (langEnBtn && langEsBtn) {
@@ -301,13 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             projectKeywordLogContainerWrapper.classList.remove('hidden');
             projectKeywordLogContainer.innerHTML = '';
-            const log = (msg) => {
-                const formattedMsg = msg.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>');
-                projectKeywordLogContainer.innerHTML += `<p>${formattedMsg}</p>`;
-            };
 
             try {
-                log('[INFO] Calling keyword generation function...');
+                logToConsole(projectKeywordLogContainer, '[INFO] Calling keyword generation function...');
                 const response = await fetch('/.netlify/functions/generate-keywords', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -319,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const data = await response.json();
-                (data.log || []).forEach(log);
+                (data.log || []).forEach(msg => logToConsole(projectKeywordLogContainer, msg));
 
                 if (!response.ok) throw new Error(data.error || 'Failed to generate keywords.');
                 
@@ -328,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderProjectTags();
 
             } catch(e) { 
-                log(`<span class="text-red-400">[FATAL] ${e.message}</span>`);
+                logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
             }
         });
 
@@ -358,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     projectCard.dataset.id = project.id;
                     projectCard.innerHTML = `
                         <div class="project-accordion-header flex justify-between items-center p-4">
-                            <div class="accordion-toggle flex-grow cursor-pointer">
+                            <div class="accordion-toggle flex-grow cursor-pointer pr-4">
                                 <h4 class="font-bold text-lg text-slate-800">${project.name}</h4>
                                 <p class="text-sm text-slate-500">${project.url || 'No URL'}</p>
                             </div>
@@ -372,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="project-accordion-content" id="content-${project.id}"></div>`;
                     projectsListContainer.appendChild(projectCard);
                     
-                    projectCard.querySelector('.accordion-toggle').addEventListener('click', (e) => {
+                    projectCard.querySelector('.accordion-toggle').addEventListener('click', () => {
                         const content = projectCard.querySelector('.project-accordion-content');
                         const arrow = projectCard.querySelector('.accordion-arrow');
                         content.classList.toggle('open');
@@ -434,10 +442,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const hs_resultsContainer = document.getElementById('hs-results-container');
         const hs_logContainerWrapper = document.getElementById('hs-log-container-wrapper');
         const hs_logContainer = document.getElementById('hs-log-container');
+        const hs_promptContainer = document.getElementById('hs-prompt-container');
+        const hs_promptMessage = document.getElementById('hs-prompt-message');
+        const hs_promptLinks = document.getElementById('hs-prompt-links');
+        const hs_deepScanBtn = document.getElementById('hs-deep-scan-btn');
 
-        const hs_showError = (message) => { hs_logContainer.innerHTML += `<p class="text-red-400">[ERROR] ${message}</p>`; };
-        const hs_log = (message) => { hs_logContainer.innerHTML += `<p class="text-slate-300">${message}</p>`; hs_logContainer.scrollTop = hs_logContainer.scrollHeight; };
-        
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -458,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 navigator.clipboard.writeText(text);
                 const originalText = copyBtn.textContent;
                 copyBtn.textContent = 'Copied!';
-                setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+                setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
             });
             return card;
         };
@@ -493,6 +502,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        const hs_executeDeepScan = async (contactUrls, emails, socials) => {
+            hs_promptContainer.classList.add('hidden');
+            logToConsole(hs_logContainer, `[INFO] Executing Deep Scan on ${contactUrls.length} URLs...`);
+            for (const contactUrl of contactUrls) {
+                logToConsole(hs_logContainer, `[INFO] Deep scraping: ${contactUrl}`);
+                try {
+                    const response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(contactUrl)}`);
+                    const html = await response.text();
+                    const deepEmails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
+                    emails.push(...deepEmails);
+                } catch (e) {
+                    logToConsole(hs_logContainer, `[WARN] Failed to scrape ${contactUrl}: ${e.message}`);
+                }
+            }
+            emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
+            logToConsole(hs_logContainer, `[SUCCESS] Deep Scan finished. Total unique emails found: ${emails.length}.`);
+            hs_renderResults(emails, socials);
+        };
+
         const hs_scrape = async () => {
             const urlToScrape = normalizeUrl(hs_urlInput.value);
             if (!urlToScrape) return;
@@ -502,9 +530,10 @@ document.addEventListener('DOMContentLoaded', () => {
             hs_resultsContainer.innerHTML = '';
             hs_logContainer.innerHTML = '';
             hs_logContainerWrapper.classList.remove('hidden');
+            hs_promptContainer.classList.add('hidden');
 
             try {
-                hs_log(`[INFO] Starting scrape for: ${urlToScrape}`);
+                logToConsole(hs_logContainer, `[INFO] Starting scrape for: ${urlToScrape}`);
                 let response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(urlToScrape)}`);
                 if (!response.ok) throw new Error(`Scraping failed with status ${response.status}`);
                 let html = await response.text();
@@ -514,56 +543,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
                 socials = [...new Set(socials)];
 
-                hs_log(`[INFO] Initial scan found ${emails.length} emails and ${socials.length} social links.`);
-                hs_renderResults(emails, socials);
+                logToConsole(hs_logContainer, `[SUCCESS] Initial scan found ${emails.length} emails and ${socials.length} social links.`);
+                if (emails.length > 0 || socials.length > 0) hs_renderResults(emails, socials);
 
                 if (emails.length === 0) {
-                    hs_log(`[WARN] No emails found. Starting Deep Scan...`);
+                    logToConsole(hs_logContainer, `[WARN] No emails found on homepage. Looking for contact pages...`);
                     const links = Array.from(new Set(html.match(/href="([^"]+)"/g)
                         .map(match => match.slice(6, -1))
-                        .map(link => new URL(link, urlToScrape).href)
-                        .filter(link => new URL(link).hostname === new URL(urlToScrape).hostname)
+                        .map(link => { try { return new URL(link, urlToScrape).href; } catch(e) { return null; }})
+                        .filter(link => link && new URL(link).hostname === new URL(urlToScrape).hostname)
                     ));
                     
-                    hs_log(`[INFO] Found ${links.length} internal links. Asking Gemini to select contact pages...`);
+                    logToConsole(hs_logContainer, `[INFO] Found ${links.length} internal links. Asking Gemini to select contact pages...`);
                     const triageResponse = await fetch(`/.netlify/functions/triage-links`, { method: 'POST', body: JSON.stringify({ urls: links }) });
                     const { selectedUrls } = await triageResponse.json();
                     
                     if (selectedUrls && selectedUrls.length > 0) {
-                        hs_log(`[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
-                        for (const contactUrl of selectedUrls) {
-                            hs_log(`[INFO] Deep scraping: ${contactUrl}`);
-                            response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(contactUrl)}`);
-                            html = await response.text();
-                            const deepEmails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
-                            emails.push(...deepEmails);
-                        }
-                        emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
-                        hs_renderResults(emails, socials);
+                        logToConsole(hs_logContainer, `[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
+                        hs_promptMessage.textContent = 'Deep Scan Recommended on these pages:';
+                        hs_promptLinks.innerHTML = selectedUrls.map(url => `<p class="text-slate-300">${url}</p>`).join('');
+                        hs_promptContainer.classList.remove('hidden');
+                        hs_deepScanBtn.onclick = () => hs_executeDeepScan(selectedUrls, emails, socials);
                     } else {
-                        hs_log(`[INFO] Gemini didn't suggest any specific contact pages to scrape.`);
+                        logToConsole(hs_logContainer, `[INFO] Gemini didn't find specific contact pages. Search complete.`);
+                        if (socials.length > 0) hs_renderResults(emails, socials); else hs_renderResults([], []);
                     }
                 }
-
-                if (emails.length === 0) {
-                    hs_log(`[WARN] Still no emails. Asking Gemini for a guess...`);
-                    const domain = new URL(urlToScrape).hostname;
-                    const guessResponse = await fetch(`/.netlify/functions/ask-gemini?domain=${domain}`);
-                    const { email } = await guessResponse.json();
-                    if(email) {
-                        hs_log(`[SUCCESS] Gemini suggested contact email: ${email}`);
-                        emails.push(email);
-                    } else {
-                        hs_log(`[INFO] Gemini could not guess an email.`);
-                    }
-                    hs_renderResults(emails, socials);
-                }
-
             } catch (e) {
-                hs_showError(e.message);
+                logToConsole(hs_logContainer, `[FATAL] ${e.message}`);
             } finally {
                 hs_scrapeBtn.disabled = false;
-                hs_scrapeBtn.innerHTML = currentTranslations['hybrid_search_btn'] || 'Search';
+                hs_scrapeBtn.textContent = currentTranslations['hybrid_search_btn'] || 'Search';
             }
         };
         hs_scrapeBtn.addEventListener('click', hs_scrape);
@@ -619,12 +629,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ao_clearKeywordsBtn.addEventListener('click', () => { ao_keywords = []; ao_renderTags(); });
 
         const ao_populateSelects = () => {
+            ao_searchTypeSelect.innerHTML = '';
+            ao_countrySelect.innerHTML = '';
+            ao_languageSelect.innerHTML = '';
             const searchTypes = {'Top Authority': 'top_authority', 'Established': 'established', 'Rising Stars': 'rising_stars'};
             const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar', 'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Germany': 'de', 'France': 'fr', 'Italy': 'it', 'Poland': 'pl' };
             const languages = {'English': 'en', 'Spanish': 'es', 'German': 'de', 'French': 'fr', 'Italian': 'it', 'Polish': 'pl'};
             Object.entries(searchTypes).forEach(([name, code]) => ao_searchTypeSelect.add(new Option(name, code)));
             Object.entries(countries).forEach(([name, code]) => ao_countrySelect.add(new Option(name, code)));
             Object.entries(languages).forEach(([name, code]) => ao_languageSelect.add(new Option(name, code)));
+            updateSearchTypeDesc();
         };
         ao_populateSelects();
 
@@ -644,13 +658,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const ao_startConsoleAnimation = () => {
-            if (ao_consoleInterval) clearInterval(ao_consoleInterval);
+            if (consoleInterval) clearInterval(consoleInterval);
             let dots = '';
             const thinkingElement = document.createElement('p');
             thinkingElement.id = 'thinking-animation';
             ao_logContainer.appendChild(thinkingElement);
             
-            ao_consoleInterval = setInterval(() => {
+            consoleInterval = setInterval(() => {
                 dots = dots.length < 3 ? dots + '.' : '';
                 thinkingElement.innerHTML = `<span class="text-cyan-400">[INFO]</span> Working ${dots}`;
                 ao_logContainer.scrollTop = ao_logContainer.scrollHeight;
@@ -658,16 +672,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const ao_stopConsoleAnimation = () => {
-            clearInterval(ao_consoleInterval);
-            ao_consoleInterval = null;
+            clearInterval(consoleInterval);
+            consoleInterval = null;
             const thinkingElement = document.getElementById('thinking-animation');
             if(thinkingElement) thinkingElement.remove();
-        };
-
-        const ao_log = (msg) => {
-             const formatted = msg.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>').replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>').replace(/WARN/g, '<span class="text-yellow-400">WARN</span>').replace(/FATAL/g, '<span class="text-red-400">FATAL</span>');
-             ao_logContainer.innerHTML += `<p>${formatted}</p>`; 
-             ao_logContainer.scrollTop = ao_logContainer.scrollHeight; 
         };
         
         const ao_saveToProject = async (media) => {
@@ -759,10 +767,10 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const promise of promises) {
                 try {
                     const result = await promise;
-                    if (result.log) result.log.forEach(ao_log);
+                    if (result.log) result.log.forEach(msg => logToConsole(ao_logContainer, msg));
                     if (result.error) continue;
                     ao_currentResults.push(...result.directResults);
-                } catch(e) { ao_log(`[FATAL] A keyword search failed completely. ${e.message}`); }
+                } catch(e) { logToConsole(ao_logContainer, `[FATAL] A keyword search failed completely. ${e.message}`); }
             }
             
             ao_stopConsoleAnimation();
