@@ -92,42 +92,61 @@
 
                 <div id="projects-view" class="view hidden">
                     <h1 class="text-4xl font-bold text-slate-800" data-translate-key="projects_title">My Projects</h1>
-                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="projects_subtitle">Select a project to work on or create a new one.</p>
-                    <div class="grid lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-1 space-y-6">
-                            <form id="project-form" class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-                                <h3 id="project-form-title" class="text-xl font-bold text-slate-800 mb-4" data-translate-key="create_project_title">Create a New Project</h3>
-                                <input type="hidden" id="project-id-input">
-                                <div class="space-y-4">
-                                    <div>
-                                        <label for="project-name" class="block text-sm font-medium text-slate-600" data-translate-key="project_name_label">Project Name</label>
-                                        <input type="text" id="project-name" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_name_placeholder" placeholder="e.g., Launch Campaign for Client X">
-                                    </div>
-                                    <div>
-                                        <label for="project-url" class="block text-sm font-medium text-slate-600" data-translate-key="project_url_label">Project URL</label>
-                                        <input type="text" id="project-url" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_url_placeholder" placeholder="domain.com">
-                                    </div>
-                                    <div>
-                                        <label for="project-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="project_keywords_label">Keywords</label>
-                                        <input type="text" id="project-keyword-input" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword & press Enter...">
-                                        <div id="project-tags-container" class="mt-2"></div>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button type="submit" id="project-submit-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="create_project_btn">Create Project</button>
-                                        <button type="button" id="project-cancel-btn" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg">Cancel</button>
-                                    </div>
-                                </div>
-                            </form>
-                            <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-                                <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="step1_title">1. Analyze Your Project for Keywords</h3>
-                                <p class="text-sm text-slate-500 mb-4">Use the URL from your project to get keyword ideas.</p>
-                                <button id="project-analyze-keywords-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg disabled-btn" data-translate-key="analyze_btn">Analyze & Generate</button>
-                                <div id="project-keyword-log-container-wrapper" class="hidden bg-slate-800 text-white rounded-xl p-4 mt-4">
-                                    <div id="project-keyword-log-container" class="console-font text-sm h-32 overflow-y-auto pr-2"></div>
-                                </div>
-                            </div>
+                    <p class="text-lg text-slate-500 mt-2 mb-6" data-translate-key="projects_subtitle">Manage your outreach campaigns and keywords.</p>
+                    
+                    <div id="create-edit-project-container" class="hidden mb-8">
+                        <form id="project-form" class="bg-white rounded-xl shadow-md border border-gray-200">
+                           <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                             <h3 id="project-form-title" class="text-2xl font-bold text-slate-800">Create a New Project</h3>
+                             <button type="button" id="project-cancel-btn" class="text-slate-500 hover:text-slate-800">&times;</button>
+                           </div>
+                           <input type="hidden" id="project-id-input">
+                           <div class="p-6">
+                             <h4 class="text-lg font-semibold text-slate-700" data-translate-key="step_1_title_projects">Step 1: Define Your Project</h4>
+                             <div class="grid md:grid-cols-2 gap-4 mt-4">
+                               <div>
+                                 <label for="project-name" class="block text-sm font-medium text-slate-600" data-translate-key="project_name_label">Project Name</label>
+                                 <input type="text" id="project-name" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_name_placeholder" placeholder="e.g., Launch Campaign for Client X">
+                               </div>
+                               <div>
+                                 <label for="project-url" class="block text-sm font-medium text-slate-600" data-translate-key="project_url_label">Project URL</label>
+                                 <input type="text" id="project-url" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_url_placeholder" placeholder="domain.com">
+                               </div>
+                             </div>
+                           </div>
+                           <div class="p-6 border-t border-gray-200">
+                             <h4 class="text-lg font-semibold text-slate-700" data-translate-key="step_2_title_projects">Step 2 (Optional): Add Keywords</h4>
+                             <div class="grid md:grid-cols-2 gap-8 mt-4">
+                               <div>
+                                 <label for="project-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="project_keywords_label">Keywords</label>
+                                 <input type="text" id="project-keyword-input" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword & press Enter...">
+                                 <div id="project-tags-container" class="mt-2 min-h-[40px]"></div>
+                               </div>
+                               <div class="bg-slate-50 p-4 rounded-lg">
+                                  <h5 class="font-bold text-sky-700" data-translate-key="ai_explainer_title">Need Ideas? Powered by AI.</h5>
+                                  <p class="text-sm text-slate-600 mt-1 mb-3" data-translate-key="ai_explainer_desc">Use our AI feature to analyze your project's URL...</p>
+                                  <button type="button" id="project-analyze-keywords-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="analyze_btn">Analyze & Generate</button>
+                               </div>
+                             </div>
+                             <div id="project-keyword-log-container-wrapper" class="hidden bg-slate-800 text-white rounded-xl p-4 mt-4">
+                                <div id="project-keyword-log-container" class="console-font text-sm h-32 overflow-y-auto pr-2"></div>
+                             </div>
+                           </div>
+                           <div class="p-6 bg-gray-50 rounded-b-xl border-t border-gray-200">
+                                <button type="submit" id="project-submit-btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-4 rounded-lg" data-translate-key="create_project_btn">Save Project</button>
+                           </div>
+                        </form>
+                    </div>
+
+                    <div id="projects-list-view">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-slate-800" data-translate-key="project_list_title">Your Projects</h2>
+                            <button id="add-project-btn" class="bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                <span data-translate-key="add_project_btn">Add New Project</span>
+                            </button>
                         </div>
-                        <div id="projects-list-container" class="lg:col-span-2 space-y-4">
+                        <div id="projects-list-container" class="space-y-4">
                             </div>
                     </div>
                 </div>
@@ -139,7 +158,8 @@
                         <input type="text" id="hs-url-input" class="w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
                         <button id="hs-scrape-btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
                     </div>
-                    <div id="hs-results-container" class="mt-6"></div>
+                    <div id="hs-results-container" class="mt-8">
+                        </div>
                     <div id="hs-log-container-wrapper" class="hidden mt-6 bg-slate-800 text-white rounded-xl p-4">
                         <h4 class="text-lg font-semibold mb-2 text-slate-300">Process Console</h4>
                         <div id="hs-log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>

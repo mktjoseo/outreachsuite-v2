@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const { createClient } = supabase;
     const SUPABASE_URL = 'https://xdrzsunisujjrghjntnn.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkcnpzdW5pc3VqanJnaGpudG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYyODcsImV4cCI6MjA2ODg0MjI4N30.jAZA8q2niY7MTO7jolyKAPiFcRVmKu2-ObSrCoXfhGk';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkcnpzdW5pc3VqanJnaGpudG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYyODcsImV4cCI6MjA2ODg0MjI4N30.jAZA8q2niY7MTO7jolyKAPiFcRVmKu2-ObSrCoXfhGk';
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // --- GLOBAL STATE & DOM REFERENCES ---
@@ -69,29 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // CORRECCIÓN: Se añade el listener aquí para que se reasigne cada vez que se crea el botón.
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                sb.auth.signOut();
-            });
-        }
-        
-        const userProfileButton = document.getElementById('user-avatar-btn');
-        if (userProfileButton) {
-            userProfileButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                document.getElementById('user-dropdown-menu').classList.toggle('hidden');
-            });
-        }
-
+        document.getElementById('logout-btn')?.addEventListener('click', (e) => { e.preventDefault(); sb.auth.signOut(); });
+        document.getElementById('user-avatar-btn')?.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('user-dropdown-menu').classList.toggle('hidden'); });
         document.querySelectorAll('.sidebar-link-in-menu').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 window.showOutreachSuiteView(e.currentTarget.getAttribute('href').substring(1));
-                const menu = document.getElementById('user-dropdown-menu');
-                if (menu) menu.classList.add('hidden');
+                document.getElementById('user-dropdown-menu')?.classList.add('hidden');
             });
         });
     };
@@ -116,13 +100,23 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         };
+
         const showView = (viewId) => {
             views.forEach(view => view.classList.add('hidden'));
             const targetView = document.getElementById(viewId + '-view');
-            if(targetView) targetView.classList.remove('hidden'); else document.getElementById('home-view').classList.remove('hidden');
+            if(targetView) {
+                targetView.classList.remove('hidden');
+            } else {
+                document.getElementById('home-view').classList.remove('hidden');
+            }
             navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + viewId));
             window.scrollTo(0, 0); 
-            if(viewId === 'projects') loadProjects(user);
+            
+            if(viewId === 'projects') {
+                document.getElementById('projects-list-view').classList.remove('hidden');
+                document.getElementById('create-edit-project-container').classList.add('hidden');
+                loadProjects(user);
+            }
             if(viewId === 'affinity-outreach') ao_loadProjectKeywords();
         };
         window.showOutreachSuiteView = showView;
@@ -148,17 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showView(initialView);
         
         // --- LANGUAGE EVENT LISTENERS ---
-        const langEnBtn = document.getElementById('lang-en');
-        const langEsBtn = document.getElementById('lang-es');
-        if (langEnBtn) {
-            langEnBtn.addEventListener('click', () => sb.auth.updateUser({ data: { language: 'en' } }));
-        }
-        if (langEsBtn) {
-            langEsBtn.addEventListener('click', () => sb.auth.updateUser({ data: { language: 'es' } }));
-        }
+        document.getElementById('lang-en')?.addEventListener('click', () => sb.auth.updateUser({ data: { language: 'en' } }));
+        document.getElementById('lang-es')?.addEventListener('click', () => sb.auth.updateUser({ data: { language: 'es' } }));
 
         // --- UTILITY FUNCTION ---
-        const normalizeUrl = (url) => { let n = url.trim(); if (!/^(https?:\/\/)/i.test(n) && n) { n = 'https://' + n; } return n; };
+        const normalizeUrl = (url) => { let n = url ? url.trim() : ''; if (!/^(https?:\/\/)/i.test(n) && n) { n = 'https://' + n; } return n; };
 
         // =================================================================================
         // ⚙️ SETTINGS LOGIC
@@ -182,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // =================================================================================
-        // 📝 PROJECTS LOGIC
+        // 📝 PROJECTS LOGIC (REDESIGNED)
         // =================================================================================
         const projectForm = document.getElementById('project-form');
         const projectFormTitle = document.getElementById('project-form-title');
@@ -197,7 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectAnalyzeKeywordsBtn = document.getElementById('project-analyze-keywords-btn');
         const projectKeywordLogContainerWrapper = document.getElementById('project-keyword-log-container-wrapper');
         const projectKeywordLogContainer = document.getElementById('project-keyword-log-container');
-
+        const addProjectBtn = document.getElementById('add-project-btn');
+        const createEditProjectContainer = document.getElementById('create-edit-project-container');
+        const projectsListView = document.getElementById('projects-list-view');
+        
         let projectKeywordsState = [];
 
         const renderProjectTags = () => {
@@ -222,19 +213,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        const showProjectForm = (show = true) => {
+            createEditProjectContainer.classList.toggle('hidden', !show);
+            projectsListView.classList.toggle('hidden', show);
+            if(show) resetProjectForm();
+        };
+
+        addProjectBtn.addEventListener('click', () => showProjectForm(true));
+        projectCancelBtn.addEventListener('click', () => showProjectForm(false));
+
         const resetProjectForm = () => {
             projectForm.reset();
             projectIdInput.value = '';
             projectKeywordsState = [];
             renderProjectTags();
-            projectFormTitle.textContent = currentTranslations['create_project_title'] || "Create a New Project";
-            projectSubmitBtn.textContent = currentTranslations['create_project_btn'] || "Create Project";
-            projectCancelBtn.classList.add('hidden');
-            projectAnalyzeKeywordsBtn.classList.add('disabled-btn');
+            projectFormTitle.textContent = currentTranslations['create_edit_title_create'] || "Create a New Project";
+            projectSubmitBtn.textContent = currentTranslations['create_project_btn'] || "Save Project";
             projectKeywordLogContainerWrapper.classList.add('hidden');
         };
-        
-        projectCancelBtn.addEventListener('click', resetProjectForm);
         
         const loadProjectDetails = async (projectId) => {
             const contentDiv = document.getElementById(`content-${projectId}`);
@@ -287,16 +283,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const editProject = (project) => {
-            projectFormTitle.textContent = "Edit Project";
-            projectSubmitBtn.textContent = "Update Project";
+            showProjectForm(true);
+            projectFormTitle.textContent = `${currentTranslations['create_edit_title_edit'] || "Editing Project"}: ${project.name}`;
+            projectSubmitBtn.textContent = currentTranslations['create_project_btn'] || "Save Project";
             projectIdInput.value = project.id;
             projectNameInput.value = project.name;
             projectUrlInput.value = project.url;
             projectKeywordsState = [...(project.keywords || [])];
             renderProjectTags();
-            projectCancelBtn.classList.remove('hidden');
-            projectAnalyzeKeywordsBtn.classList.remove('disabled-btn');
-            projectForm.scrollIntoView({ behavior: 'smooth' });
         };
         
         projectAnalyzeKeywordsBtn.addEventListener('click', async () => {
@@ -305,13 +299,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             projectKeywordLogContainerWrapper.classList.remove('hidden');
             projectKeywordLogContainer.innerHTML = '';
-            const log = (msg) => projectKeywordLogContainer.innerHTML += msg + '<br>';
+            const log = (msg) => projectKeywordLogContainer.innerHTML += msg.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>') + '<br>';
 
             try {
+                log('[INFO] Calling keyword generation function...');
                 const response = await fetch('/.netlify/functions/generate-keywords', {
                     method: 'POST',
                     body: JSON.stringify({ projectUrl: url })
                 });
+
+                // BUG FIX: Handle non-JSON responses (like timeouts)
+                if (!response.headers.get('content-type')?.includes('application/json')) {
+                    throw new Error("The server response was not in the expected format. The function may have timed out.");
+                }
+
                 const data = await response.json();
                 
                 (data.log || []).forEach(log);
@@ -322,7 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 projectKeywordsState = combined;
                 renderProjectTags();
 
-            } catch(e) { log(`[FATAL] ${e.message}`); }
+            } catch(e) { 
+                log(`[FATAL] ${e.message}`);
+                if (e instanceof SyntaxError) { // This happens on JSON parsing failure
+                    log('[FATAL] This is often caused by a function timeout (taking more than 25s). Please try again.');
+                }
+            }
         });
 
         const loadProjects = async (user) => {
@@ -336,9 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeProjectDisplay.innerHTML = '';
             } else {
                 projects.forEach(project => {
-                    const accordion = document.createElement('div');
-                    accordion.className = 'bg-white rounded-xl shadow-sm';
-                    accordion.innerHTML = `
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'bg-white rounded-xl shadow-sm border border-gray-200';
+                    projectCard.innerHTML = `
                         <div class="project-accordion-header flex justify-between items-center p-4 cursor-pointer">
                             <div><h4 class="font-bold text-lg text-slate-800">${project.name}</h4><p class="text-sm text-slate-500">${project.url || 'No URL'}</p></div>
                             <div class="flex items-center gap-2">
@@ -348,23 +354,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                         <div class="project-accordion-content" id="content-${project.id}"></div>`;
-                    projectsListContainer.appendChild(accordion);
+                    projectsListContainer.appendChild(projectCard);
                     
-                    accordion.querySelector('.project-accordion-header').addEventListener('click', (e) => { 
+                    projectCard.querySelector('.project-accordion-header').addEventListener('click', (e) => { 
                         if(!e.target.closest('button')) { 
-                            // Select this project as active
                             activeProject = project;
                             activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
-                            
-                            const content = accordion.querySelector('.project-accordion-content');
-                            const arrow = accordion.querySelector('.accordion-arrow');
+                            const content = projectCard.querySelector('.project-accordion-content');
+                            const arrow = projectCard.querySelector('.accordion-arrow');
                             content.classList.toggle('open');
                             arrow.classList.toggle('open');
                             if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } 
                         }
                     });
-                    accordion.querySelector('.edit-project-btn').addEventListener('click', () => editProject(project));
-                    accordion.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
+                    projectCard.querySelector('.edit-project-btn').addEventListener('click', () => editProject(project));
+                    projectCard.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
                 });
 
                 if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
@@ -407,24 +411,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const projectData = { name, url, keywords };
 
-            let error, data;
+            let error;
             if (editingId) {
-                const response = await sb.from('projects').update(projectData).eq('id', editingId).select().single();
-                error = response.error; data = response.data;
+                const { error: updateError } = await sb.from('projects').update(projectData).eq('id', editingId);
+                error = updateError;
             } else {
                 projectData.user_id = user.id;
-                const response = await sb.from('projects').insert(projectData).select().single();
-                error = response.error; data = response.data;
+                const { error: insertError } = await sb.from('projects').insert(projectData);
+                error = insertError;
             }
 
             if (error) { alert('Error saving project: ' + error.message); }
             else {
-                resetProjectForm();
+                showProjectForm(false);
                 await loadProjects(user);
-                if (data) {
-                   activeProject = data;
-                   activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${data.name}</strong>`;
-                }
             }
         });
         
@@ -440,10 +440,53 @@ document.addEventListener('DOMContentLoaded', () => {
         const hs_showError = (message) => { hs_logContainer.innerHTML += `<p class="text-red-400">[ERROR] ${message}</p>`; };
         const hs_log = (message) => { hs_logContainer.innerHTML += `<p class="text-slate-300">${message}</p>`; hs_logContainer.scrollTop = hs_logContainer.scrollHeight; };
         
+        const hs_createResultCard = (text, linkUrl, type) => {
+            const icons = {
+                email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
+                linkedin: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5V8h3v11zM6.5 6.73c-.966 0-1.75-.79-1.75-1.76S5.75 3.21 6.5 3.21s1.75.79 1.75 1.76S7.466 6.73 6.5 6.73zM19 19h-3v-5.6c0-1.33-.027-3.03-1.85-3.03-1.85 0-2.136 1.44-2.136 2.93V19h-3V8h2.88v1.32h.04c.4-.76 1.37-1.55 2.84-1.55 3.04 0 3.6 2 3.6 4.6V19z"/></svg>`,
+                default: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>`
+            };
+            const card = document.createElement('div');
+            card.className = 'bg-white p-4 rounded-lg shadow-sm border flex items-center gap-4';
+            card.innerHTML = `
+                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-sky-100 text-sky-600">${icons[type] || icons.default}</div>
+                <div class="flex-grow overflow-hidden">
+                    <a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="font-semibold truncate block text-slate-700 hover:text-sky-600" title="${text}">${text}</a>
+                </div>
+                <button class="copy-btn ml-auto bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-3 rounded-md hover:bg-slate-300 transition-colors flex-shrink-0">Copy</button>
+            `;
+            card.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(text));
+            return card;
+        };
+        
         const hs_renderResults = (emails, socials) => {
-            const emailHtml = emails.length > 0 ? `<div><h4 class="font-bold">Emails</h4><ul class="list-disc pl-5">${emails.map(e => `<li>${e}</li>`).join('')}</ul></div>` : '';
-            const socialHtml = socials.length > 0 ? `<div><h4 class="font-bold mt-4">Social</h4><ul class="list-disc pl-5">${socials.map(s => `<li><a href="${s}" target="_blank" class="text-sky-400">${s}</a></li>`).join('')}</ul></div>` : '';
-            hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-sm border">${emailHtml}${socialHtml}</div>`;
+            hs_resultsContainer.innerHTML = '';
+            let resultsFound = false;
+
+            if (emails.length > 0) {
+                resultsFound = true;
+                const container = document.createElement('div');
+                container.innerHTML = `<h3 class="text-xl font-semibold mb-3">Found Emails</h3>`;
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+                emails.forEach(email => grid.appendChild(hs_createResultCard(email, `mailto:${email}`, 'email')));
+                container.appendChild(grid);
+                hs_resultsContainer.appendChild(container);
+            }
+            if (socials.length > 0) {
+                resultsFound = true;
+                const container = document.createElement('div');
+                container.innerHTML = `<h3 class="text-xl font-semibold mt-6 mb-3">Found Social & Contact Links</h3>`;
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+                socials.forEach(link => grid.appendChild(hs_createResultCard(link, link, new URL(link).hostname.includes('linkedin') ? 'linkedin' : 'default')));
+                container.appendChild(grid);
+                hs_resultsContainer.appendChild(container);
+            }
+
+            if (!resultsFound) {
+                hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg text-center text-slate-600"><p>The search has finished, but no contact information was found.</p></div>`;
+            }
         };
 
         const hs_scrape = async () => {
@@ -464,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let emails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
                 let socials = html.match(/https?:\/\/(www\.)?(linkedin\.com|twitter\.com|facebook\.com|instagram\.com)\/[a-zA-Z0-9._\/-]+/gi) || [];
-                emails = [...new Set(emails)];
+                emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
                 socials = [...new Set(socials)];
 
                 hs_log(`[INFO] Initial scan found ${emails.length} emails and ${socials.length} social links.`);
@@ -482,16 +525,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     const triageResponse = await fetch(`/.netlify/functions/triage-links`, { method: 'POST', body: JSON.stringify({ urls: links }) });
                     const { selectedUrls } = await triageResponse.json();
                     
-                    hs_log(`[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
-                    for (const contactUrl of selectedUrls) {
-                        hs_log(`[INFO] Deep scraping: ${contactUrl}`);
-                        response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(contactUrl)}`);
-                        html = await response.text();
-                        const deepEmails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
-                        emails.push(...deepEmails);
+                    if (selectedUrls && selectedUrls.length > 0) {
+                        hs_log(`[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
+                        for (const contactUrl of selectedUrls) {
+                            hs_log(`[INFO] Deep scraping: ${contactUrl}`);
+                            response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(contactUrl)}`);
+                            html = await response.text();
+                            const deepEmails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
+                            emails.push(...deepEmails);
+                        }
+                        emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
+                        hs_renderResults(emails, socials);
+                    } else {
+                        hs_log(`[INFO] Gemini didn't suggest any specific contact pages to scrape.`);
                     }
-                    emails = [...new Set(emails)];
-                    hs_renderResults(emails, socials);
                 }
 
                 if (emails.length === 0) {
@@ -551,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const ao_loadProjectKeywords = () => {
-            if(activeProject && activeProject.keywords) {
+            if(activeProject && activeProject.keywords && activeProject.keywords.length > 0) {
                 ao_keywords = [...new Set([...ao_keywords, ...activeProject.keywords])];
                 ao_renderTags();
             }
@@ -595,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const ao_renderResults = (results) => {
-            ao_resultsContainer.innerHTML = results.map(res => `
+            ao_resultsContainer.innerHTML = results.map((res, index) => `
                 <div class="bg-white p-4 rounded-xl shadow-sm border mb-4">
                     <div class="flex justify-between items-start">
                         <div>
@@ -609,7 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <p class="text-sm text-slate-600 mt-2"><strong>Description:</strong> ${res.description}</p>
                     <p class="text-sm text-slate-600 mt-1"><strong>Reason:</strong> ${res.reason}</p>
-                    <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${ao_currentResults.indexOf(res)}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
+                    <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${index}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
                 </div>
             `).join('');
 
@@ -643,14 +690,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const language = ao_languageSelect.value;
             const searchType = ao_searchTypeSelect.value;
             
-            const promises = ao_keywords.map(kw => fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`).then(res => res.json()));
+            const promises = ao_keywords.map(kw => fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`).then(res => {
+                if (!res.headers.get('content-type')?.includes('application/json')) {
+                    return res.text().then(text => { throw new Error(`Server returned non-JSON response: ${text}`); });
+                }
+                return res.json();
+            }));
 
             for (const promise of promises) {
                 try {
                     const result = await promise;
                     if (result.log) result.log.forEach(ao_log);
-                    if (result.error) continue;
-                    ao_currentResults = [...ao_currentResults, ...result.directResults];
+                    if (result.error) {
+                        ao_log(`[WARN] Search for a keyword failed: ${result.error}`);
+                        continue;
+                    };
+                    ao_currentResults.push(...result.directResults);
                 } catch(e) { ao_log(`[FATAL] A keyword search failed completely. ${e.message}`); }
             }
             
@@ -703,8 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     signupBtn.addEventListener('click', async () => { 
         const { error } = await sb.auth.signUp({ email: authEmailInput.value, password: authPasswordInput.value, options: { data: { language: authLanguageSelect.value } } }); 
-        if (error) showAuthMessage('Sign up successful! Please check your email.', 'success'); 
-        else showAuthMessage(error.message); 
+        if (error) { showAuthMessage(error.message); }
+        else { showAuthMessage('Sign up successful! Please check your email.', 'success'); }
     });
 
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
