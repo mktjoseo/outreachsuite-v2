@@ -149,8 +149,7 @@
                                 <span data-translate-key="add_project_btn">Add New Project</span>
                             </button>
                         </div>
-                        <div id="projects-list-container" class="space-y-4">
-                            </div>
+                        <div id="projects-list-container" class="space-y-4"></div>
                     </div>
                 </div>
 
@@ -180,7 +179,7 @@
                                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 mt-1">
                                     <input type="text" id="ao-keyword-input" class="w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword...">
                                     <button id="ao-add-keyword-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="add_btn">Add</button>
-                                    <button id="ao-clear-keywords-btn" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg" data-translate-key="clear_all_btn">Clear All</button>
+                                    <button id="ao-clear-keywords-btn" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg" data-translate-key="clear_btn">Clear</button>
                                 </div>
                                 <div id="ao-tags-container" class="mt-2"></div>
                             </div>
@@ -188,7 +187,7 @@
                                 <div>
                                     <label for="ao-search-type" data-translate-key="search_type_label">Search Type</label>
                                     <select id="ao-search-type" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
-                                    <p id="ao-search-type-desc" class="text-xs text-slate-500 mt-1"></p>
+                                    <p id="ao-search-type-desc" class="text-xs text-slate-500 mt-1 min-h-[30px]"></p>
                                 </div>
                                 <div>
                                     <label for="ao-country" data-translate-key="country_label">Country</label>
@@ -202,7 +201,13 @@
                             <button id="ao-search-media-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="search_media_btn">Search Media</button>
                         </div>
                     </div>
-                    <div id="ao-results-container" class="mt-8"></div>
+                    <div id="ao-results-wrapper" class="mt-8">
+                         <div id="ao-results-header" class="hidden justify-between items-center mb-4">
+                            <h3 class="text-2xl font-bold text-slate-800">Results</h3>
+                            <button id="ao-export-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="export_selected_btn">Export Selected</button>
+                        </div>
+                        <div id="ao-results-container"></div>
+                    </div>
                     <div id="ao-log-container-wrapper" class="hidden mt-6 bg-slate-800 text-white rounded-xl p-4">
                         <div id="ao-log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>
                     </div>

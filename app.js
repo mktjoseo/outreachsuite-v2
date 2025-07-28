@@ -301,7 +301,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             projectKeywordLogContainerWrapper.classList.remove('hidden');
             projectKeywordLogContainer.innerHTML = '';
-            const log = (msg) => projectKeywordLogContainer.innerHTML += msg.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>') + '<br>';
+            const log = (msg) => {
+                const formattedMsg = msg.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>');
+                projectKeywordLogContainer.innerHTML += `<p>${formattedMsg}</p>`;
+            };
 
             try {
                 log('[INFO] Calling keyword generation function...');
@@ -316,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const data = await response.json();
-                
                 (data.log || []).forEach(log);
 
                 if (!response.ok) throw new Error(data.error || 'Failed to generate keywords.');
@@ -334,18 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
             activeProject = project;
             activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
             
-            // Highlight the active project card
-            document.querySelectorAll('.project-card').forEach(card => {
-                card.classList.remove('active-project-card');
-                card.classList.remove('border-sky-500', 'bg-sky-50');
-            });
-            const activeCard = document.querySelector(`.project-card[data-id="${project.id}"]`);
-            if (activeCard) {
-                activeCard.classList.add('active-project-card');
-                activeCard.classList.add('border-sky-500', 'bg-sky-50');
-            }
-
-            // Reload keywords for Affinity Outreach
+            document.querySelectorAll('.project-card').forEach(card => card.classList.remove('border-sky-500', 'bg-sky-50'));
+            document.querySelector(`.project-card[data-id="${project.id}"]`)?.classList.add('border-sky-500', 'bg-sky-50');
+            
             ao_loadProjectKeywords();
         };
 
@@ -361,16 +354,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 projects.forEach(project => {
                     const projectCard = document.createElement('div');
-                    projectCard.className = 'project-card bg-white rounded-xl shadow-sm border border-gray-200';
+                    projectCard.className = 'project-card bg-white rounded-xl shadow-sm border border-gray-200 transition-all';
                     projectCard.dataset.id = project.id;
                     projectCard.innerHTML = `
                         <div class="project-accordion-header flex justify-between items-center p-4">
-                            <div class="cursor-pointer flex-grow">
+                            <div class="accordion-toggle flex-grow cursor-pointer">
                                 <h4 class="font-bold text-lg text-slate-800">${project.name}</h4>
                                 <p class="text-sm text-slate-500">${project.url || 'No URL'}</p>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
-                                <button class="select-project-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-translate-key="select_project_btn">Set as Active</button>
+                            <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                                <button class="select-project-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg hover:bg-sky-200" data-translate-key="select_project_btn">Set as Active</button>
                                 <button class="edit-project-btn text-slate-500 hover:text-sky-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5z"></path></svg></button>
                                 <button class="delete-project-btn text-slate-500 hover:text-red-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg></button>
                                 <svg class="accordion-arrow w-5 h-5 text-slate-500 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
@@ -379,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="project-accordion-content" id="content-${project.id}"></div>`;
                     projectsListContainer.appendChild(projectCard);
                     
-                    projectCard.querySelector('.project-accordion-header > div:first-child').addEventListener('click', (e) => {
+                    projectCard.querySelector('.accordion-toggle').addEventListener('click', (e) => {
                         const content = projectCard.querySelector('.project-accordion-content');
                         const arrow = projectCard.querySelector('.accordion-arrow');
                         content.classList.toggle('open');
@@ -394,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
                    setActiveProject(projects[0]);
                 } else {
-                   setActiveProject(activeProject); // Re-apply styles on reload
+                   setActiveProject(activeProject);
                 }
             }
         };
@@ -404,20 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (scrapBtn) { 
                 document.getElementById('hs-url-input').value = scrapBtn.dataset.url; 
                 window.location.hash = 'hybrid-scraper';
-            }
-            
-            const exportBtn = e.target.closest('.export-project-media-btn');
-            if (exportBtn) {
-                const container = exportBtn.closest('.project-accordion-content');
-                const selected = Array.from(container.querySelectorAll('.project-media-checkbox:checked')).map(cb => cb.dataset.url);
-                if(selected.length === 0) { alert('Please select media to export.'); return; }
-                const textContent = selected.join('\n');
-                const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'exported_project_media.txt';
-                link.click();
-                URL.revokeObjectURL(link.href);
             }
         });
 
@@ -519,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!urlToScrape) return;
 
             hs_scrapeBtn.disabled = true;
-            hs_scrapeBtn.innerHTML = '<div class="loader w-6 h-6 border-4 mx-auto"></div>';
+            hs_scrapeBtn.innerHTML = '<div class="loader"></div>';
             hs_resultsContainer.innerHTML = '';
             hs_logContainer.innerHTML = '';
             hs_logContainerWrapper.classList.remove('hidden');
@@ -584,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hs_showError(e.message);
             } finally {
                 hs_scrapeBtn.disabled = false;
-                hs_scrapeBtn.textContent = currentTranslations['hybrid_search_btn'] || 'Search';
+                hs_scrapeBtn.innerHTML = currentTranslations['hybrid_search_btn'] || 'Search';
             }
         };
         hs_scrapeBtn.addEventListener('click', hs_scrape);
@@ -598,6 +577,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const ao_clearKeywordsBtn = document.getElementById('ao-clear-keywords-btn');
         const ao_tagsContainer = document.getElementById('ao-tags-container');
         const ao_searchMediaBtn = document.getElementById('ao-search-media-btn');
+        const ao_resultsWrapper = document.getElementById('ao-results-wrapper');
+        const ao_resultsHeader = document.getElementById('ao-results-header');
         const ao_resultsContainer = document.getElementById('ao-results-container');
         const ao_logContainerWrapper = document.getElementById('ao-log-container-wrapper');
         const ao_logContainer = document.getElementById('ao-log-container');
@@ -639,8 +620,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ao_populateSelects = () => {
             const searchTypes = {'Top Authority': 'top_authority', 'Established': 'established', 'Rising Stars': 'rising_stars'};
-            const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar'};
-            const languages = {'English': 'en', 'Spanish': 'es'};
+            const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar', 'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Germany': 'de', 'France': 'fr', 'Italy': 'it', 'Poland': 'pl' };
+            const languages = {'English': 'en', 'Spanish': 'es', 'German': 'de', 'French': 'fr', 'Italian': 'it', 'Polish': 'pl'};
             Object.entries(searchTypes).forEach(([name, code]) => ao_searchTypeSelect.add(new Option(name, code)));
             Object.entries(countries).forEach(([name, code]) => ao_countrySelect.add(new Option(name, code)));
             Object.entries(languages).forEach(([name, code]) => ao_languageSelect.add(new Option(name, code)));
@@ -648,14 +629,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ao_populateSelects();
 
         const updateSearchTypeDesc = () => {
-            const selectedType = ao_searchTypeSelect.value;
-            const key = `search_type_desc_${selectedType.split('_')[0]}`;
+            const selectedType = ao_searchTypeSelect.value.split('_')[0];
+            const key = `search_type_desc_${selectedType}`;
             ao_searchTypeDesc.textContent = currentTranslations[key] || '';
         };
         ao_searchTypeSelect.addEventListener('change', updateSearchTypeDesc);
-        updateSearchTypeDesc();
-
-        const countryLanguageMap = { 'es': 'es', 'mx': 'es', 'ar': 'es', 'us': 'en', 'uk': 'en' };
+        
+        const countryLanguageMap = { 'es': 'es', 'mx': 'es', 'ar': 'es', 'co': 'es', 'cl': 'es', 'pe': 'es', 'us': 'en', 'uk': 'en', 'de': 'de', 'fr': 'fr', 'it': 'it', 'pl': 'pl' };
         ao_countrySelect.addEventListener('change', () => {
             const selectedCountry = ao_countrySelect.value;
             if(countryLanguageMap[selectedCountry]) {
@@ -668,57 +648,67 @@ document.addEventListener('DOMContentLoaded', () => {
             let dots = '';
             const thinkingElement = document.createElement('p');
             thinkingElement.id = 'thinking-animation';
-            thinkingElement.innerHTML = '[INFO] Working ';
             ao_logContainer.appendChild(thinkingElement);
             
             ao_consoleInterval = setInterval(() => {
                 dots = dots.length < 3 ? dots + '.' : '';
-                thinkingElement.innerHTML = `[INFO] Working ${dots}`;
+                thinkingElement.innerHTML = `<span class="text-cyan-400">[INFO]</span> Working ${dots}`;
                 ao_logContainer.scrollTop = ao_logContainer.scrollHeight;
             }, 500);
         };
 
         const ao_stopConsoleAnimation = () => {
             clearInterval(ao_consoleInterval);
+            ao_consoleInterval = null;
             const thinkingElement = document.getElementById('thinking-animation');
             if(thinkingElement) thinkingElement.remove();
         };
 
-        const ao_log = (msg) => { ao_logContainer.innerHTML += msg.replace(/\[/g, '<span class="text-cyan-400">[')
-                                        .replace(/\]/g, ']</span>')
-                                        .replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>')
-                                        .replace(/WARN/g, '<span class="text-yellow-400">WARN</span>')
-                                        .replace(/FATAL/g, '<span class="text-red-400">FATAL</span>') + '<br>'; 
-                                ao_logContainer.scrollTop = ao_logContainer.scrollHeight; };
+        const ao_log = (msg) => {
+             const formatted = msg.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>').replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>').replace(/WARN/g, '<span class="text-yellow-400">WARN</span>').replace(/FATAL/g, '<span class="text-red-400">FATAL</span>');
+             ao_logContainer.innerHTML += `<p>${formatted}</p>`; 
+             ao_logContainer.scrollTop = ao_logContainer.scrollHeight; 
+        };
         
         const ao_saveToProject = async (media) => {
             if (!activeProject) { alert(currentTranslations['select_project_alert']); return false; }
             const { error } = await sb.from('saved_media').insert({
-                project_id: activeProject.id,
-                user_id: user.id,
-                name: media.name, url: media.url, description: media.description,
-                reason: media.reason, relevance_score: media.relevanceScore, category: media.category,
+                project_id: activeProject.id, user_id: user.id, name: media.name, url: media.url,
+                description: media.description, reason: media.reason,
+                relevance_score: media.relevanceScore, category: media.category,
             });
             if(error) { alert('Error saving media: ' + error.message); return false; }
             return true;
         };
 
         const ao_renderResults = (results) => {
+            if(results.length > 0) {
+                ao_resultsHeader.classList.remove('hidden');
+                ao_resultsHeader.classList.add('flex');
+            } else {
+                ao_resultsHeader.classList.add('hidden');
+                ao_resultsHeader.classList.remove('flex');
+            }
             ao_resultsContainer.innerHTML = results.map((res, index) => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border mb-4">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold text-lg text-slate-800">${res.name}</h4>
-                            <a href="${res.url}" target="_blank" rel="noopener noreferrer" class="text-sm text-sky-600">${res.url}</a>
-                        </div>
-                        <div class="flex-shrink-0 ml-4">
-                            <span class="category-tag bg-slate-200 text-slate-600">${res.category}</span>
-                            <span class="ml-2 font-bold text-slate-700">${res.relevanceScore}/10</span>
-                        </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border mb-4 flex gap-4">
+                    <div class="flex-shrink-0 pt-1">
+                        <input type="checkbox" class="ao-result-checkbox h-5 w-5 text-[#BF103C] border-gray-300 rounded focus:ring-[#BF103C]" data-url="${res.url}">
                     </div>
-                    <p class="text-sm text-slate-600 mt-2"><strong>Description:</strong> ${res.description}</p>
-                    <p class="text-sm text-slate-600 mt-1"><strong>Reason:</strong> ${res.reason}</p>
-                    <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${index}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-lg text-slate-800">${res.name}</h4>
+                                <a href="${res.url}" target="_blank" rel="noopener noreferrer" class="text-sm text-sky-600">${res.url}</a>
+                            </div>
+                            <div class="flex-shrink-0 ml-4 text-right">
+                                <span class="category-tag bg-slate-200 text-slate-600">${res.category}</span>
+                                <span class="ml-2 font-bold text-slate-700 block mt-1">${res.relevanceScore}/10</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2"><strong>Description:</strong> ${res.description}</p>
+                        <p class="text-sm text-slate-600 mt-1"><strong>Reason:</strong> ${res.reason}</p>
+                        <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${index}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
+                    </div>
                 </div>
             `).join('');
 
@@ -737,13 +727,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
+        document.getElementById('ao-export-btn').addEventListener('click', () => {
+            const selected = Array.from(document.querySelectorAll('.ao-result-checkbox:checked')).map(cb => cb.dataset.url);
+            if(selected.length === 0) { alert('Please select media to export.'); return; }
+            const textContent = selected.join('\n');
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'exported_affinity_media.txt';
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
         ao_searchMediaBtn.addEventListener('click', async () => {
             if (ao_keywords.length === 0) { alert('Please add at least one keyword.'); return; }
             ao_searchMediaBtn.disabled = true;
-            ao_searchMediaBtn.innerHTML = '<div class="loader w-6 h-6 border-4 mx-auto"></div>';
+            ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
             ao_logContainerWrapper.classList.remove('hidden');
             ao_logContainer.innerHTML = '';
             ao_resultsContainer.innerHTML = '';
+            ao_resultsHeader.classList.add('hidden');
             ao_currentResults = [];
             ao_startConsoleAnimation();
 
@@ -763,6 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             ao_stopConsoleAnimation();
+            ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()]; // Deduplicate by URL
             ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
             ao_renderResults(ao_currentResults);
 
