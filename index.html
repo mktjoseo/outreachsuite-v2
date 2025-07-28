@@ -98,7 +98,7 @@
                         <form id="project-form" class="bg-white rounded-xl shadow-md border border-gray-200">
                            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                              <h3 id="project-form-title" class="text-2xl font-bold text-slate-800">Create a New Project</h3>
-                             <button type="button" id="project-cancel-btn" class="text-slate-500 hover:text-slate-800">&times;</button>
+                             <button type="button" id="project-cancel-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button>
                            </div>
                            <input type="hidden" id="project-id-input">
                            <div class="p-6">
@@ -119,10 +119,13 @@
                              <div class="grid md:grid-cols-2 gap-8 mt-4">
                                <div>
                                  <label for="project-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="project_keywords_label">Keywords</label>
-                                 <input type="text" id="project-keyword-input" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword & press Enter...">
+                                  <div class="flex items-center gap-2 mt-1">
+                                    <input type="text" id="project-keyword-input" class="w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword...">
+                                    <button type="button" id="project-add-keyword-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0" data-translate-key="add_btn">Add</button>
+                                  </div>
                                  <div id="project-tags-container" class="mt-2 min-h-[40px]"></div>
                                </div>
-                               <div class="bg-slate-50 p-4 rounded-lg">
+                               <div class="bg-slate-50 p-4 rounded-lg border">
                                   <h5 class="font-bold text-sky-700" data-translate-key="ai_explainer_title">Need Ideas? Powered by AI.</h5>
                                   <p class="text-sm text-slate-600 mt-1 mb-3" data-translate-key="ai_explainer_desc">Use our AI feature to analyze your project's URL...</p>
                                   <button type="button" id="project-analyze-keywords-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="analyze_btn">Analyze & Generate</button>
@@ -158,8 +161,7 @@
                         <input type="text" id="hs-url-input" class="w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
                         <button id="hs-scrape-btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
                     </div>
-                    <div id="hs-results-container" class="mt-8">
-                        </div>
+                    <div id="hs-results-container" class="mt-8"></div>
                     <div id="hs-log-container-wrapper" class="hidden mt-6 bg-slate-800 text-white rounded-xl p-4">
                         <h4 class="text-lg font-semibold mb-2 text-slate-300">Process Console</h4>
                         <div id="hs-log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>
@@ -175,17 +177,27 @@
                         <div class="space-y-4">
                             <div>
                                 <label for="ao-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="keywords_label">Keywords or Topics</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="text" id="ao-keyword-input" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword & press Enter...">
+                                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 mt-1">
+                                    <input type="text" id="ao-keyword-input" class="w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword...">
                                     <button id="ao-add-keyword-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="add_btn">Add</button>
-                                    <button id="ao-clear-keywords-btn" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg">Clear All</button>
+                                    <button id="ao-clear-keywords-btn" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg" data-translate-key="clear_all_btn">Clear All</button>
                                 </div>
                                 <div id="ao-tags-container" class="mt-2"></div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                <div><label for="ao-search-type" data-translate-key="search_type_label">Search Type</label><select id="ao-search-type" class="w-full p-2 mt-1 border rounded-lg bg-white"></select></div>
-                                <div><label for="ao-country" data-translate-key="country_label">Country</label><select id="ao-country" class="w-full p-2 mt-1 border rounded-lg bg-white"></select></div>
-                                <div><label for="ao-language" data-translate-key="language_label">Language</label><select id="ao-language" class="w-full p-2 mt-1 border rounded-lg bg-white"></select></div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="ao-search-type" data-translate-key="search_type_label">Search Type</label>
+                                    <select id="ao-search-type" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
+                                    <p id="ao-search-type-desc" class="text-xs text-slate-500 mt-1"></p>
+                                </div>
+                                <div>
+                                    <label for="ao-country" data-translate-key="country_label">Country</label>
+                                    <select id="ao-country" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
+                                </div>
+                                <div>
+                                    <label for="ao-language" data-translate-key="language_label">Language</label>
+                                    <select id="ao-language" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
+                                </div>
                             </div>
                             <button id="ao-search-media-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="search_media_btn">Search Media</button>
                         </div>

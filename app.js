@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeProject = null;
     let ao_keywords = [];
     let ao_currentResults = [];
+    let ao_consoleInterval = null;
 
     // --- TRANSLATION & AUTH UI FUNCTIONS ---
     const translatePage = async (lang) => {
@@ -178,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectNameInput = document.getElementById('project-name');
         const projectUrlInput = document.getElementById('project-url');
         const projectKeywordInput = document.getElementById('project-keyword-input');
+        const projectAddKeywordBtn = document.getElementById('project-add-keyword-btn');
         const projectTagsContainer = document.getElementById('project-tags-container');
         const projectSubmitBtn = document.getElementById('project-submit-btn');
         const projectCancelBtn = document.getElementById('project-cancel-btn');
@@ -200,18 +202,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 tag.appendChild(removeBtn); projectTagsContainer.appendChild(tag);
             });
         };
-        
-        projectKeywordInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const newKeyword = projectKeywordInput.value.trim();
-                if (newKeyword && !projectKeywordsState.includes(newKeyword)) {
-                    projectKeywordsState.push(newKeyword);
-                    renderProjectTags();
-                }
-                projectKeywordInput.value = '';
+
+        const addProjectKeyword = () => {
+            const newKeyword = projectKeywordInput.value.trim();
+            if (newKeyword && !projectKeywordsState.includes(newKeyword)) {
+                projectKeywordsState.push(newKeyword);
+                renderProjectTags();
             }
-        });
+            projectKeywordInput.value = '';
+        };
+        
+        projectKeywordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addProjectKeyword(); }});
+        projectAddKeywordBtn.addEventListener('click', addProjectKeyword);
 
         const showProjectForm = (show = true) => {
             createEditProjectContainer.classList.toggle('hidden', !show);
@@ -305,12 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 log('[INFO] Calling keyword generation function...');
                 const response = await fetch('/.netlify/functions/generate-keywords', {
                     method: 'POST',
-                    body: JSON.stringify({ projectUrl: url })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectUrl: url, render: true })
                 });
 
-                // BUG FIX: Handle non-JSON responses (like timeouts)
                 if (!response.headers.get('content-type')?.includes('application/json')) {
-                    throw new Error("The server response was not in the expected format. The function may have timed out.");
+                    throw new Error("The server response was not in the expected format. The function may have timed out after 25 seconds.");
                 }
 
                 const data = await response.json();
@@ -324,12 +326,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderProjectTags();
 
             } catch(e) { 
-                log(`[FATAL] ${e.message}`);
-                if (e instanceof SyntaxError) { // This happens on JSON parsing failure
-                    log('[FATAL] This is often caused by a function timeout (taking more than 25s). Please try again.');
-                }
+                log(`<span class="text-red-400">[FATAL] ${e.message}</span>`);
             }
         });
+
+        const setActiveProject = (project) => {
+            activeProject = project;
+            activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
+            
+            // Highlight the active project card
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.classList.remove('active-project-card');
+                card.classList.remove('border-sky-500', 'bg-sky-50');
+            });
+            const activeCard = document.querySelector(`.project-card[data-id="${project.id}"]`);
+            if (activeCard) {
+                activeCard.classList.add('active-project-card');
+                activeCard.classList.add('border-sky-500', 'bg-sky-50');
+            }
+
+            // Reload keywords for Affinity Outreach
+            ao_loadProjectKeywords();
+        };
 
         const loadProjects = async (user) => {
             const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
@@ -343,11 +361,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 projects.forEach(project => {
                     const projectCard = document.createElement('div');
-                    projectCard.className = 'bg-white rounded-xl shadow-sm border border-gray-200';
+                    projectCard.className = 'project-card bg-white rounded-xl shadow-sm border border-gray-200';
+                    projectCard.dataset.id = project.id;
                     projectCard.innerHTML = `
-                        <div class="project-accordion-header flex justify-between items-center p-4 cursor-pointer">
-                            <div><h4 class="font-bold text-lg text-slate-800">${project.name}</h4><p class="text-sm text-slate-500">${project.url || 'No URL'}</p></div>
-                            <div class="flex items-center gap-2">
+                        <div class="project-accordion-header flex justify-between items-center p-4">
+                            <div class="cursor-pointer flex-grow">
+                                <h4 class="font-bold text-lg text-slate-800">${project.name}</h4>
+                                <p class="text-sm text-slate-500">${project.url || 'No URL'}</p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button class="select-project-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-translate-key="select_project_btn">Set as Active</button>
                                 <button class="edit-project-btn text-slate-500 hover:text-sky-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5z"></path></svg></button>
                                 <button class="delete-project-btn text-slate-500 hover:text-red-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg></button>
                                 <svg class="accordion-arrow w-5 h-5 text-slate-500 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
@@ -356,26 +379,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="project-accordion-content" id="content-${project.id}"></div>`;
                     projectsListContainer.appendChild(projectCard);
                     
-                    projectCard.querySelector('.project-accordion-header').addEventListener('click', (e) => { 
-                        if(!e.target.closest('button')) { 
-                            activeProject = project;
-                            activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
-                            const content = projectCard.querySelector('.project-accordion-content');
-                            const arrow = projectCard.querySelector('.accordion-arrow');
-                            content.classList.toggle('open');
-                            arrow.classList.toggle('open');
-                            if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } 
-                        }
+                    projectCard.querySelector('.project-accordion-header > div:first-child').addEventListener('click', (e) => {
+                        const content = projectCard.querySelector('.project-accordion-content');
+                        const arrow = projectCard.querySelector('.accordion-arrow');
+                        content.classList.toggle('open');
+                        arrow.classList.toggle('open');
+                        if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } 
                     });
+                    projectCard.querySelector('.select-project-btn').addEventListener('click', () => setActiveProject(project));
                     projectCard.querySelector('.edit-project-btn').addEventListener('click', () => editProject(project));
                     projectCard.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
                 });
 
                 if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
-                   activeProject = projects[0];
-                }
-                if (activeProject) {
-                   activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${activeProject.name}</strong>`;
+                   setActiveProject(projects[0]);
+                } else {
+                   setActiveProject(activeProject); // Re-apply styles on reload
                 }
             }
         };
@@ -455,7 +474,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button class="copy-btn ml-auto bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-3 rounded-md hover:bg-slate-300 transition-colors flex-shrink-0">Copy</button>
             `;
-            card.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(text));
+            const copyBtn = card.querySelector('.copy-btn');
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(text);
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+            });
             return card;
         };
         
@@ -579,6 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ao_searchTypeSelect = document.getElementById('ao-search-type');
         const ao_countrySelect = document.getElementById('ao-country');
         const ao_languageSelect = document.getElementById('ao-language');
+        const ao_searchTypeDesc = document.getElementById('ao-search-type-desc');
 
         const ao_renderTags = () => {
             ao_tagsContainer.innerHTML = '';
@@ -599,7 +625,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ao_loadProjectKeywords = () => {
             if(activeProject && activeProject.keywords && activeProject.keywords.length > 0) {
-                ao_keywords = [...new Set([...ao_keywords, ...activeProject.keywords])];
+                ao_keywords = [...new Set(activeProject.keywords)];
+                ao_renderTags();
+            } else {
+                ao_keywords = [];
                 ao_renderTags();
             }
         };
@@ -618,6 +647,43 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         ao_populateSelects();
 
+        const updateSearchTypeDesc = () => {
+            const selectedType = ao_searchTypeSelect.value;
+            const key = `search_type_desc_${selectedType.split('_')[0]}`;
+            ao_searchTypeDesc.textContent = currentTranslations[key] || '';
+        };
+        ao_searchTypeSelect.addEventListener('change', updateSearchTypeDesc);
+        updateSearchTypeDesc();
+
+        const countryLanguageMap = { 'es': 'es', 'mx': 'es', 'ar': 'es', 'us': 'en', 'uk': 'en' };
+        ao_countrySelect.addEventListener('change', () => {
+            const selectedCountry = ao_countrySelect.value;
+            if(countryLanguageMap[selectedCountry]) {
+                ao_languageSelect.value = countryLanguageMap[selectedCountry];
+            }
+        });
+
+        const ao_startConsoleAnimation = () => {
+            if (ao_consoleInterval) clearInterval(ao_consoleInterval);
+            let dots = '';
+            const thinkingElement = document.createElement('p');
+            thinkingElement.id = 'thinking-animation';
+            thinkingElement.innerHTML = '[INFO] Working ';
+            ao_logContainer.appendChild(thinkingElement);
+            
+            ao_consoleInterval = setInterval(() => {
+                dots = dots.length < 3 ? dots + '.' : '';
+                thinkingElement.innerHTML = `[INFO] Working ${dots}`;
+                ao_logContainer.scrollTop = ao_logContainer.scrollHeight;
+            }, 500);
+        };
+
+        const ao_stopConsoleAnimation = () => {
+            clearInterval(ao_consoleInterval);
+            const thinkingElement = document.getElementById('thinking-animation');
+            if(thinkingElement) thinkingElement.remove();
+        };
+
         const ao_log = (msg) => { ao_logContainer.innerHTML += msg.replace(/\[/g, '<span class="text-cyan-400">[')
                                         .replace(/\]/g, ']</span>')
                                         .replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>')
@@ -627,15 +693,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const ao_saveToProject = async (media) => {
             if (!activeProject) { alert(currentTranslations['select_project_alert']); return false; }
-            const { data, error } = await sb.from('saved_media').insert({
+            const { error } = await sb.from('saved_media').insert({
                 project_id: activeProject.id,
                 user_id: user.id,
-                name: media.name,
-                url: media.url,
-                description: media.description,
-                reason: media.reason,
-                relevance_score: media.relevanceScore,
-                category: media.category,
+                name: media.name, url: media.url, description: media.description,
+                reason: media.reason, relevance_score: media.relevanceScore, category: media.category,
             });
             if(error) { alert('Error saving media: ' + error.message); return false; }
             return true;
@@ -670,9 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         button.textContent = currentTranslations['media_saved'] || 'Saved ✔️';
                         button.classList.remove('bg-green-100', 'text-green-700');
                         button.classList.add('bg-slate-200', 'text-slate-500');
-                    } else {
-                        button.disabled = false;
-                    }
+                    } else { button.disabled = false; }
                 });
             });
         };
@@ -685,30 +745,24 @@ document.addEventListener('DOMContentLoaded', () => {
             ao_logContainer.innerHTML = '';
             ao_resultsContainer.innerHTML = '';
             ao_currentResults = [];
+            ao_startConsoleAnimation();
 
             const country = ao_countrySelect.value;
             const language = ao_languageSelect.value;
             const searchType = ao_searchTypeSelect.value;
             
-            const promises = ao_keywords.map(kw => fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`).then(res => {
-                if (!res.headers.get('content-type')?.includes('application/json')) {
-                    return res.text().then(text => { throw new Error(`Server returned non-JSON response: ${text}`); });
-                }
-                return res.json();
-            }));
+            const promises = ao_keywords.map(kw => fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`).then(res => res.json()));
 
             for (const promise of promises) {
                 try {
                     const result = await promise;
                     if (result.log) result.log.forEach(ao_log);
-                    if (result.error) {
-                        ao_log(`[WARN] Search for a keyword failed: ${result.error}`);
-                        continue;
-                    };
+                    if (result.error) continue;
                     ao_currentResults.push(...result.directResults);
                 } catch(e) { ao_log(`[FATAL] A keyword search failed completely. ${e.message}`); }
             }
             
+            ao_stopConsoleAnimation();
             ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
             ao_renderResults(ao_currentResults);
 

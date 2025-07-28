@@ -25,7 +25,8 @@ exports.handler = async function(event) {
     const diagnosticsLog = [];
 
     try {
-        const { projectUrl } = JSON.parse(event.body);
+        // CAMBIO: Ahora también leemos la opción 'render' que nos envía el frontend.
+        const { projectUrl, render } = JSON.parse(event.body);
         if (!projectUrl) {
             return { statusCode: 400, body: JSON.stringify({ error: 'No projectUrl provided.', log: ['[ERROR] projectUrl not found in request.'] }) };
         }
@@ -33,8 +34,15 @@ exports.handler = async function(event) {
         const domain = new URL(projectUrl).hostname;
         diagnosticsLog.push(`[INFO] Starting keyword analysis for: ${domain}`);
 
+        // CAMBIO: Construimos la URL de ScraperAPI dinámicamente.
+        let scrapeUrl = `https://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(projectUrl)}`;
+        if (render) {
+            scrapeUrl += '&render=true';
+            diagnosticsLog.push(`[INFO] JavaScript rendering has been enabled for this scrape.`);
+        }
+
         diagnosticsLog.push(`[INFO] Fetching content via ScraperAPI...`);
-        const scrapeResponse = await fetch(`https://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(projectUrl)}`);
+        const scrapeResponse = await fetch(scrapeUrl);
         
         if (!scrapeResponse.ok) {
             diagnosticsLog.push(`[ERROR] ScraperAPI failed with status: ${scrapeResponse.status}.`);
