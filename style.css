@@ -1,0 +1,22 @@
+body { font-family: 'Poppins', sans-serif; }
+.console-font { font-family: 'Fira Code', monospace; }
+#log-container::-webkit-scrollbar, #ao-keyword-log-container::-webkit-scrollbar, #ao-log-container::-webkit-scrollbar { width: 8px; }
+#log-container::-webkit-scrollbar-track, #ao-keyword-log-container::-webkit-scrollbar-track, #ao-log-container::-webkit-scrollbar-track { background: #2d3748; }
+#log-container::-webkit-scrollbar-thumb, #ao-keyword-log-container::-webkit-scrollbar-thumb, #ao-log-container::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 20px; border: 3px solid #2d3748; }
+.disabled-btn, button:disabled, input:disabled { opacity: 0.6; cursor: not-allowed; }
+.sidebar-link { display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1; border-radius: 0.5rem; padding: 0.75rem 1rem; transition: color 0.2s, background-color 0.2s; }
+.sidebar-link:hover { background-color: rgba(71, 85, 105, 0.5); }
+.sidebar-link.active { background-color: #475569; color: #ffffff; font-weight: 600; }
+.loader { border-top-color: #BF103C; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.tag { display: inline-flex; align-items: center; background-color: #BF103C; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; margin: 0.25rem 0.4rem 0.25rem 0; }
+.tag-remove { margin-left: 0.5rem; width: 1rem; height: 1rem; border-radius: 50%; background-color: rgba(0,0,0,0.2); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; }
+.tag-remove:hover { background-color: rgba(0,0,0,0.4); }
+.category-tag { font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 0.375rem; font-weight: 600; text-transform: uppercase; }
+.dropdown-menu.hidden { display: none; }
+body.logged-out #app-container { display: none; }
+body.logged-in #auth-container { display: none; }
+body.logged-in #app-container { display: flex; }
+.project-accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+.project-accordion-content.open { max-height: 2000px; }
+.accordion-arrow.open { transform: rotate(180deg); }
