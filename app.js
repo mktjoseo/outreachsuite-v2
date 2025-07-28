@@ -68,6 +68,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 <a href="#" id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-translate-key="logout_btn">Logout</a>
             </div>
         `;
+
+        // CORRECCIÓN: Se añade el listener aquí para que se reasigne cada vez que se crea el botón.
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                sb.auth.signOut();
+            });
+        }
+        
+        const userProfileButton = document.getElementById('user-avatar-btn');
+        if (userProfileButton) {
+            userProfileButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('user-dropdown-menu').classList.toggle('hidden');
+            });
+        }
+
+        document.querySelectorAll('.sidebar-link-in-menu').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.showOutreachSuiteView(e.currentTarget.getAttribute('href').substring(1));
+                const menu = document.getElementById('user-dropdown-menu');
+                if (menu) menu.classList.add('hidden');
+            });
+        });
     };
     
     // =================================================================================
@@ -97,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + viewId));
             window.scrollTo(0, 0); 
             if(viewId === 'projects') loadProjects(user);
+            if(viewId === 'affinity-outreach') ao_loadProjectKeywords();
         };
         window.showOutreachSuiteView = showView;
         
@@ -104,9 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const viewId = e.currentTarget.getAttribute('href').substring(1);
             window.location.hash = viewId;
-            if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
-                toggleMenu();
-            }
         };
 
         window.addEventListener('hashchange', () => {
@@ -123,32 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
         showView(initialView);
         
-        // --- USER PROFILE & LANGUAGE EVENT LISTENERS ---
-        const userProfileButton = document.getElementById('user-avatar-btn');
-        if (userProfileButton) {
-            userProfileButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                document.getElementById('user-dropdown-menu').classList.toggle('hidden');
-            });
-        }
-
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                sb.auth.signOut();
-            });
-        }
-
-        document.querySelectorAll('.sidebar-link-in-menu').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.showOutreachSuiteView(link.getAttribute('href').substring(1));
-                const menu = document.getElementById('user-dropdown-menu');
-                if (menu) menu.classList.add('hidden');
-            });
-        });
-
+        // --- LANGUAGE EVENT LISTENERS ---
         const langEnBtn = document.getElementById('lang-en');
         const langEsBtn = document.getElementById('lang-es');
         if (langEnBtn) {
@@ -195,7 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectSubmitBtn = document.getElementById('project-submit-btn');
         const projectCancelBtn = document.getElementById('project-cancel-btn');
         const projectsListContainer = document.getElementById('projects-list-container');
-        
+        const projectAnalyzeKeywordsBtn = document.getElementById('project-analyze-keywords-btn');
+        const projectKeywordLogContainerWrapper = document.getElementById('project-keyword-log-container-wrapper');
+        const projectKeywordLogContainer = document.getElementById('project-keyword-log-container');
+
         let projectKeywordsState = [];
 
         const renderProjectTags = () => {
@@ -228,6 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
             projectFormTitle.textContent = currentTranslations['create_project_title'] || "Create a New Project";
             projectSubmitBtn.textContent = currentTranslations['create_project_btn'] || "Create Project";
             projectCancelBtn.classList.add('hidden');
+            projectAnalyzeKeywordsBtn.classList.add('disabled-btn');
+            projectKeywordLogContainerWrapper.classList.add('hidden');
         };
         
         projectCancelBtn.addEventListener('click', resetProjectForm);
@@ -261,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
                                 <input type="checkbox" class="project-media-checkbox h-4 w-4 text-[#BF103C] border-gray-300 rounded focus:ring-[#BF103C]" data-url="${m.url}">
                                 <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
-                                <button class="scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
+                                <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
                             </div>
                         `).join('')}</div>
                     </div>
@@ -278,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await sb.from('saved_media').delete().eq('project_id', projectId);
                 const { error } = await sb.from('projects').delete().eq('id', projectId);
                 if (error) { alert('Error deleting project: ' + error.message); }
-                else { if(activeProject && activeProject.id === projectId) activeProject = null; await loadProjects(user); }
+                else { if(activeProject && activeProject.id === projectId) { activeProject = null; activeProjectDisplay.innerHTML = ''; } await loadProjects(user); }
             }
         };
 
@@ -291,8 +295,35 @@ document.addEventListener('DOMContentLoaded', () => {
             projectKeywordsState = [...(project.keywords || [])];
             renderProjectTags();
             projectCancelBtn.classList.remove('hidden');
+            projectAnalyzeKeywordsBtn.classList.remove('disabled-btn');
             projectForm.scrollIntoView({ behavior: 'smooth' });
         };
+        
+        projectAnalyzeKeywordsBtn.addEventListener('click', async () => {
+            const url = normalizeUrl(projectUrlInput.value);
+            if (!url) { alert('Please enter a project URL to analyze.'); return; }
+            
+            projectKeywordLogContainerWrapper.classList.remove('hidden');
+            projectKeywordLogContainer.innerHTML = '';
+            const log = (msg) => projectKeywordLogContainer.innerHTML += msg + '<br>';
+
+            try {
+                const response = await fetch('/.netlify/functions/generate-keywords', {
+                    method: 'POST',
+                    body: JSON.stringify({ projectUrl: url })
+                });
+                const data = await response.json();
+                
+                (data.log || []).forEach(log);
+
+                if (!response.ok) throw new Error(data.error || 'Failed to generate keywords.');
+                
+                const combined = [...new Set([...projectKeywordsState, ...data.existingKeywords, ...data.opportunityKeywords])];
+                projectKeywordsState = combined;
+                renderProjectTags();
+
+            } catch(e) { log(`[FATAL] ${e.message}`); }
+        });
 
         const loadProjects = async (user) => {
             const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
@@ -309,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     accordion.className = 'bg-white rounded-xl shadow-sm';
                     accordion.innerHTML = `
                         <div class="project-accordion-header flex justify-between items-center p-4 cursor-pointer">
-                            <div><h4 class="font-bold text-lg text-slate-800">${project.name}</h4><p class="text-sm text-slate-500">${project.url}</p></div>
+                            <div><h4 class="font-bold text-lg text-slate-800">${project.name}</h4><p class="text-sm text-slate-500">${project.url || 'No URL'}</p></div>
                             <div class="flex items-center gap-2">
                                 <button class="edit-project-btn text-slate-500 hover:text-sky-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5z"></path></svg></button>
                                 <button class="delete-project-btn text-slate-500 hover:text-red-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg></button>
@@ -319,10 +350,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="project-accordion-content" id="content-${project.id}"></div>`;
                     projectsListContainer.appendChild(accordion);
                     
-                    accordion.querySelector('.project-accordion-header').addEventListener('click', (e) => { if(!e.target.closest('button')) { const content = accordion.querySelector('.project-accordion-content'); const arrow = accordion.querySelector('.accordion-arrow'); content.classList.toggle('open'); arrow.classList.toggle('open'); if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } } });
+                    accordion.querySelector('.project-accordion-header').addEventListener('click', (e) => { 
+                        if(!e.target.closest('button')) { 
+                            // Select this project as active
+                            activeProject = project;
+                            activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
+                            
+                            const content = accordion.querySelector('.project-accordion-content');
+                            const arrow = accordion.querySelector('.accordion-arrow');
+                            content.classList.toggle('open');
+                            arrow.classList.toggle('open');
+                            if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } 
+                        }
+                    });
                     accordion.querySelector('.edit-project-btn').addEventListener('click', () => editProject(project));
                     accordion.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
                 });
+
                 if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
                    activeProject = projects[0];
                 }
@@ -333,9 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         projectsListContainer.addEventListener('click', (e) => {
-            const scrapBtn = e.target.closest('.scrap-contact-btn');
+            const scrapBtn = e.target.closest('.hs-scrap-contact-btn');
             if (scrapBtn) { 
-                document.getElementById('urlInput').value = scrapBtn.dataset.url; 
+                document.getElementById('hs-url-input').value = scrapBtn.dataset.url; 
                 window.location.hash = 'hybrid-scraper';
             }
             
@@ -347,8 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const textContent = selected.join('\n');
                 const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob); link.download = 'exported_project_media.txt';
-                link.click(); URL.revokeObjectURL(link.href);
+                link.href = URL.createObjectURL(blob);
+                link.download = 'exported_project_media.txt';
+                link.click();
+                URL.revokeObjectURL(link.href);
             }
         });
 
@@ -358,11 +404,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = normalizeUrl(projectUrlInput.value);
             const keywords = projectKeywordsState;
             const editingId = projectIdInput.value;
-
+            
             const projectData = { name, url, keywords };
 
             let error, data;
-
             if (editingId) {
                 const response = await sb.from('projects').update(projectData).eq('id', editingId).select().single();
                 error = response.error; data = response.data;
@@ -372,9 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 error = response.error; data = response.data;
             }
 
-            if (error) {
-                alert('Error saving project: ' + error.message);
-            } else {
+            if (error) { alert('Error saving project: ' + error.message); }
+            else {
                 resetProjectForm();
                 await loadProjects(user);
                 if (data) {
@@ -384,20 +428,250 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // ... (resto de la lógica de los scrapers y affinity) ...
+        // =================================================================================
+        // 🛠️ HYBRID SCRAPER LOGIC
+        // =================================================================================
+        const hs_urlInput = document.getElementById('hs-url-input');
+        const hs_scrapeBtn = document.getElementById('hs-scrape-btn');
+        const hs_resultsContainer = document.getElementById('hs-results-container');
+        const hs_logContainerWrapper = document.getElementById('hs-log-container-wrapper');
+        const hs_logContainer = document.getElementById('hs-log-container');
+
+        const hs_showError = (message) => { hs_logContainer.innerHTML += `<p class="text-red-400">[ERROR] ${message}</p>`; };
+        const hs_log = (message) => { hs_logContainer.innerHTML += `<p class="text-slate-300">${message}</p>`; hs_logContainer.scrollTop = hs_logContainer.scrollHeight; };
         
+        const hs_renderResults = (emails, socials) => {
+            const emailHtml = emails.length > 0 ? `<div><h4 class="font-bold">Emails</h4><ul class="list-disc pl-5">${emails.map(e => `<li>${e}</li>`).join('')}</ul></div>` : '';
+            const socialHtml = socials.length > 0 ? `<div><h4 class="font-bold mt-4">Social</h4><ul class="list-disc pl-5">${socials.map(s => `<li><a href="${s}" target="_blank" class="text-sky-400">${s}</a></li>`).join('')}</ul></div>` : '';
+            hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-sm border">${emailHtml}${socialHtml}</div>`;
+        };
+
+        const hs_scrape = async () => {
+            const urlToScrape = normalizeUrl(hs_urlInput.value);
+            if (!urlToScrape) return;
+
+            hs_scrapeBtn.disabled = true;
+            hs_scrapeBtn.innerHTML = '<div class="loader w-6 h-6 border-4 mx-auto"></div>';
+            hs_resultsContainer.innerHTML = '';
+            hs_logContainer.innerHTML = '';
+            hs_logContainerWrapper.classList.remove('hidden');
+
+            try {
+                hs_log(`[INFO] Starting scrape for: ${urlToScrape}`);
+                let response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(urlToScrape)}`);
+                if (!response.ok) throw new Error(`Scraping failed with status ${response.status}`);
+                let html = await response.text();
+
+                let emails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
+                let socials = html.match(/https?:\/\/(www\.)?(linkedin\.com|twitter\.com|facebook\.com|instagram\.com)\/[a-zA-Z0-9._\/-]+/gi) || [];
+                emails = [...new Set(emails)];
+                socials = [...new Set(socials)];
+
+                hs_log(`[INFO] Initial scan found ${emails.length} emails and ${socials.length} social links.`);
+                hs_renderResults(emails, socials);
+
+                if (emails.length === 0) {
+                    hs_log(`[WARN] No emails found. Starting Deep Scan...`);
+                    const links = Array.from(new Set(html.match(/href="([^"]+)"/g)
+                        .map(match => match.slice(6, -1))
+                        .map(link => new URL(link, urlToScrape).href)
+                        .filter(link => new URL(link).hostname === new URL(urlToScrape).hostname)
+                    ));
+                    
+                    hs_log(`[INFO] Found ${links.length} internal links. Asking Gemini to select contact pages...`);
+                    const triageResponse = await fetch(`/.netlify/functions/triage-links`, { method: 'POST', body: JSON.stringify({ urls: links }) });
+                    const { selectedUrls } = await triageResponse.json();
+                    
+                    hs_log(`[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
+                    for (const contactUrl of selectedUrls) {
+                        hs_log(`[INFO] Deep scraping: ${contactUrl}`);
+                        response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(contactUrl)}`);
+                        html = await response.text();
+                        const deepEmails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
+                        emails.push(...deepEmails);
+                    }
+                    emails = [...new Set(emails)];
+                    hs_renderResults(emails, socials);
+                }
+
+                if (emails.length === 0) {
+                    hs_log(`[WARN] Still no emails. Asking Gemini for a guess...`);
+                    const domain = new URL(urlToScrape).hostname;
+                    const guessResponse = await fetch(`/.netlify/functions/ask-gemini?domain=${domain}`);
+                    const { email } = await guessResponse.json();
+                    if(email) {
+                        hs_log(`[SUCCESS] Gemini suggested contact email: ${email}`);
+                        emails.push(email);
+                    } else {
+                        hs_log(`[INFO] Gemini could not guess an email.`);
+                    }
+                    hs_renderResults(emails, socials);
+                }
+
+            } catch (e) {
+                hs_showError(e.message);
+            } finally {
+                hs_scrapeBtn.disabled = false;
+                hs_scrapeBtn.textContent = currentTranslations['hybrid_search_btn'] || 'Search';
+            }
+        };
+        hs_scrapeBtn.addEventListener('click', hs_scrape);
+
+
+        // =================================================================================
+        // 💜 AFFINITY OUTREACH LOGIC
+        // =================================================================================
+        const ao_keywordInput = document.getElementById('ao-keyword-input');
+        const ao_addKeywordBtn = document.getElementById('ao-add-keyword-btn');
+        const ao_clearKeywordsBtn = document.getElementById('ao-clear-keywords-btn');
+        const ao_tagsContainer = document.getElementById('ao-tags-container');
+        const ao_searchMediaBtn = document.getElementById('ao-search-media-btn');
+        const ao_resultsContainer = document.getElementById('ao-results-container');
+        const ao_logContainerWrapper = document.getElementById('ao-log-container-wrapper');
+        const ao_logContainer = document.getElementById('ao-log-container');
+        const ao_searchTypeSelect = document.getElementById('ao-search-type');
+        const ao_countrySelect = document.getElementById('ao-country');
+        const ao_languageSelect = document.getElementById('ao-language');
+
+        const ao_renderTags = () => {
+            ao_tagsContainer.innerHTML = '';
+            ao_keywords.forEach(keyword => {
+                const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = keyword;
+                const removeBtn = document.createElement('button'); removeBtn.className = 'tag-remove'; removeBtn.innerHTML = '&times;';
+                removeBtn.onclick = () => { ao_keywords = ao_keywords.filter(k => k !== keyword); ao_renderTags(); };
+                tag.appendChild(removeBtn); ao_tagsContainer.appendChild(tag);
+            });
+        };
+        const ao_addKeyword = () => {
+            const newKeyword = ao_keywordInput.value.trim();
+            if (newKeyword && !ao_keywords.includes(newKeyword)) {
+                ao_keywords.push(newKeyword); ao_renderTags();
+            }
+            ao_keywordInput.value = '';
+        };
+
+        const ao_loadProjectKeywords = () => {
+            if(activeProject && activeProject.keywords) {
+                ao_keywords = [...new Set([...ao_keywords, ...activeProject.keywords])];
+                ao_renderTags();
+            }
+        };
+
+        ao_keywordInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ao_addKeyword(); }});
+        ao_addKeywordBtn.addEventListener('click', ao_addKeyword);
+        ao_clearKeywordsBtn.addEventListener('click', () => { ao_keywords = []; ao_renderTags(); });
+
+        const ao_populateSelects = () => {
+            const searchTypes = {'Top Authority': 'top_authority', 'Established': 'established', 'Rising Stars': 'rising_stars'};
+            const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar'};
+            const languages = {'English': 'en', 'Spanish': 'es'};
+            Object.entries(searchTypes).forEach(([name, code]) => ao_searchTypeSelect.add(new Option(name, code)));
+            Object.entries(countries).forEach(([name, code]) => ao_countrySelect.add(new Option(name, code)));
+            Object.entries(languages).forEach(([name, code]) => ao_languageSelect.add(new Option(name, code)));
+        };
+        ao_populateSelects();
+
+        const ao_log = (msg) => { ao_logContainer.innerHTML += msg.replace(/\[/g, '<span class="text-cyan-400">[')
+                                        .replace(/\]/g, ']</span>')
+                                        .replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>')
+                                        .replace(/WARN/g, '<span class="text-yellow-400">WARN</span>')
+                                        .replace(/FATAL/g, '<span class="text-red-400">FATAL</span>') + '<br>'; 
+                                ao_logContainer.scrollTop = ao_logContainer.scrollHeight; };
+        
+        const ao_saveToProject = async (media) => {
+            if (!activeProject) { alert(currentTranslations['select_project_alert']); return false; }
+            const { data, error } = await sb.from('saved_media').insert({
+                project_id: activeProject.id,
+                user_id: user.id,
+                name: media.name,
+                url: media.url,
+                description: media.description,
+                reason: media.reason,
+                relevance_score: media.relevanceScore,
+                category: media.category,
+            });
+            if(error) { alert('Error saving media: ' + error.message); return false; }
+            return true;
+        };
+
+        const ao_renderResults = (results) => {
+            ao_resultsContainer.innerHTML = results.map(res => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border mb-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-lg text-slate-800">${res.name}</h4>
+                            <a href="${res.url}" target="_blank" rel="noopener noreferrer" class="text-sm text-sky-600">${res.url}</a>
+                        </div>
+                        <div class="flex-shrink-0 ml-4">
+                            <span class="category-tag bg-slate-200 text-slate-600">${res.category}</span>
+                            <span class="ml-2 font-bold text-slate-700">${res.relevanceScore}/10</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2"><strong>Description:</strong> ${res.description}</p>
+                    <p class="text-sm text-slate-600 mt-1"><strong>Reason:</strong> ${res.reason}</p>
+                    <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${ao_currentResults.indexOf(res)}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.ao-save-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const button = e.currentTarget;
+                    const result = ao_currentResults[button.dataset.resultIndex];
+                    button.disabled = true;
+                    const success = await ao_saveToProject(result);
+                    if(success) {
+                        button.textContent = currentTranslations['media_saved'] || 'Saved ✔️';
+                        button.classList.remove('bg-green-100', 'text-green-700');
+                        button.classList.add('bg-slate-200', 'text-slate-500');
+                    } else {
+                        button.disabled = false;
+                    }
+                });
+            });
+        };
+
+        ao_searchMediaBtn.addEventListener('click', async () => {
+            if (ao_keywords.length === 0) { alert('Please add at least one keyword.'); return; }
+            ao_searchMediaBtn.disabled = true;
+            ao_searchMediaBtn.innerHTML = '<div class="loader w-6 h-6 border-4 mx-auto"></div>';
+            ao_logContainerWrapper.classList.remove('hidden');
+            ao_logContainer.innerHTML = '';
+            ao_resultsContainer.innerHTML = '';
+            ao_currentResults = [];
+
+            const country = ao_countrySelect.value;
+            const language = ao_languageSelect.value;
+            const searchType = ao_searchTypeSelect.value;
+            
+            const promises = ao_keywords.map(kw => fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`).then(res => res.json()));
+
+            for (const promise of promises) {
+                try {
+                    const result = await promise;
+                    if (result.log) result.log.forEach(ao_log);
+                    if (result.error) continue;
+                    ao_currentResults = [...ao_currentResults, ...result.directResults];
+                } catch(e) { ao_log(`[FATAL] A keyword search failed completely. ${e.message}`); }
+            }
+            
+            ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
+            ao_renderResults(ao_currentResults);
+
+            ao_searchMediaBtn.disabled = false;
+            ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
+        });
+
         await loadProjects(user);
-        // ao_updateSearchDesc();
     };
 
     // =================================================================================
     // 🔒 AUTHENTICATION CONTROLLER
     // =================================================================================
     sb.auth.onAuthStateChange(async (event, session) => {
+        const user = session?.user;
         if (session) {
             body.classList.remove('logged-out');
             body.classList.add('logged-in');
-            const user = session.user;
             
             updateUserAvatar(user);
             await translatePage(user.user_metadata?.language || 'en');
@@ -429,8 +703,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     signupBtn.addEventListener('click', async () => { 
         const { error } = await sb.auth.signUp({ email: authEmailInput.value, password: authPasswordInput.value, options: { data: { language: authLanguageSelect.value } } }); 
-        if (error) showAuthMessage(error.message); 
-        else showAuthMessage('Sign up successful! Please check your email.', 'success'); 
+        if (error) showAuthMessage('Sign up successful! Please check your email.', 'success'); 
+        else showAuthMessage(error.message); 
     });
 
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
