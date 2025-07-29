@@ -76,10 +76,16 @@
                 <div id="hybrid-scraper-view" class="view hidden">
                     <h1 class="text-4xl font-bold text-slate-800" data-translate-key="hybrid_title">Hybrid Scraper</h1>
                     <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="hybrid_subtitle">Uncover contact information from any website.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                        <input type="text" id="hs-url-input" class="md:col-span-2 w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
-                        <select id="hs-language-select" class="w-full p-3 border border-gray-300 rounded-lg bg-white"></select>
-                        <button id="hs-scrape-btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
+                    <div class="space-y-4">
+                        <div class="flex flex-col sm:flex-row gap-2">
+                           <input type="text" id="hs-url-input" class="flex-grow w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
+                           <button id="hs-scrape-btn" class="w-full sm:w-auto bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
+                        </div>
+                        <div>
+                           <label for="hs-language-select" class="block text-sm font-medium text-slate-600">Website Language</label>
+                           <select id="hs-language-select" class="w-full sm:w-1/3 mt-1 p-3 border border-gray-300 rounded-lg bg-white"></select>
+                           <p class="text-xs text-slate-500 mt-1" data-translate-key="hybrid_scraper_lang_explainer">Select the target website's language to improve accuracy.</p>
+                        </div>
                     </div>
                     <div id="hs-results-container" class="mt-8"></div>
                     <div id="hs-prompt-container" class="hidden mt-6 bg-slate-700 p-6 rounded-lg shadow-md text-left">
@@ -92,7 +98,6 @@
                         <div id="hs-log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>
                     </div>
                 </div>
-
                 <div id="affinity-outreach-view" class="view hidden">
                     </div>
                 <div id="settings-view" class="view hidden">

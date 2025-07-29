@@ -492,6 +492,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
         Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
+        
+        // Default language based on user profile
+        hs_languageSelect.value = user.user_metadata?.language || 'en';
 
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
@@ -630,6 +633,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         hs_scrapeBtn.addEventListener('click', hs_scrape);
+        
+        await loadProjects(user);
+    };
 
         // =================================================================================
         // 💜 AFFINITY OUTREACH LOGIC
@@ -869,7 +875,8 @@ document.addEventListener('DOMContentLoaded', () => {
             body.classList.add('logged-out');
             isAppInitialized = false;
             activeProject = null;
-            await translatePage(navigator.language.split('-')[0] || 'en');
+            // CORRECCIÓN: Se fuerza el idioma a inglés por defecto en la pantalla de login.
+            await translatePage('en');
             activeProjectDisplay.innerHTML = '';
         }
     });
