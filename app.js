@@ -782,46 +782,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         ao_searchMediaBtn.addEventListener('click', async () => {
-            if (ao_keywords.length === 0) { alert('Please add at least one keyword.'); return; }
-            
-            ao_searchMediaBtn.disabled = true;
-            ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
-            ao_logContainerWrapper.classList.remove('hidden');
-            ao_logContainer.innerHTML = '';
-            ao_resultsContainer.innerHTML = '';
-            ao_resultsHeader.classList.add('hidden');
-            ao_currentResults = [];
-            startConsoleAnimation();
+            if (ao_keywords.length === 0) {
+        alert('Please add at least one keyword.');
+        return;
+    }
+    
+    ao_searchMediaBtn.disabled = true;
+    ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
+    ao_logContainerWrapper.classList.remove('hidden');
+    ao_logContainer.innerHTML = '';
+    ao_resultsContainer.innerHTML = '';
+    ao_resultsHeader.classList.add('hidden');
+    ao_currentResults = [];
+    startConsoleAnimation();
 
-            const country = ao_countrySelect.value;
-            const language = ao_languageSelect.value;
-            const searchType = ao_searchTypeSelect.value;
-            
-            const promises = ao_keywords.map(kw => 
-                fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`)
-            );
-            
-            for (const promise of promises) {
-                try {
-                    const response = await promise;
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error || `Request failed with status ${response.status}`);
-                    
-                    if (result.log) result.log.forEach(msg => logToConsole(ao_logContainer, msg));
-                    if (result.directResults) ao_currentResults.push(...result.directResults);
-                } catch(e) {
-                    logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
-                }
-            }
-            
-            stopConsoleAnimation();
-            ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()];
-            ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
-            ao_renderResults(ao_currentResults);
-            logToConsole(ao_logContainer, `[SUCCESS] Search complete! Found ${ao_currentResults.length} unique results. ✅`);
+    // --- CAMBIO: Se añade una bandera para rastrear los fallos ---
+    let allSearchesSucceeded = true;
 
-            ao_searchMediaBtn.disabled = false;
-            ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
+    const country = ao_countrySelect.value;
+    const language = ao_languageSelect.value;
+    const searchType = ao_searchTypeSelect.value;
+    
+    const promises = ao_keywords.map(kw => 
+        fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`)
+    );
+    
+    for (const promise of promises) {
+        try {
+            const response = await promise;
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Request failed with status ${response.status}`);
+            
+            if (result.log) result.log.forEach(msg => logToConsole(ao_logContainer, msg));
+            if (result.directResults) ao_currentResults.push(...result.directResults);
+        } catch(e) {
+            logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
+            // --- CAMBIO: Si algo falla, se actualiza la bandera ---
+            allSearchesSucceeded = false;
+        }
+    }
+    
+    stopConsoleAnimation();
+    ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()];
+    ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
+    ao_renderResults(ao_currentResults);
+
+    // --- The final message depends on whether there were any errors. ---
+    if (allSearchesSucceeded) {
+        logToConsole(ao_logContainer, `[SUCCESS] Search complete! Found ${ao_currentResults.length} unique results. ✅`);
+    } else {
+        logToConsole(ao_logContainer, `[WARN] Search finished, but some keywords failed to process. Found ${ao_currentResults.length} results from the successful searches.`);
+    }
+
+    ao_searchMediaBtn.disabled = false;
+    ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
         });
 
         await loadProjects(user);
