@@ -23,7 +23,6 @@
   "affinity_subtitle": "Discover relevant media outlets based on real SEO data.",
   "step2_title": "Find Affinity Media",
   "project_url_label": "Project URL",
-  "analyze_btn": "Analyze & Generate",
   "keywords_label": "Keywords or Topics",
   "add_keyword_placeholder": "Add keyword...",
   "add_btn": "Add",
@@ -72,5 +71,7 @@
   "save_to_project_btn": "Save to Project",
   "media_saved": "Saved ✔️",
   "select_project_alert": "Please set a project as active first from the 'Projects' page.",
-  "saved_media_title": "Saved Media"
+  "saved_media_title": "Saved Media",
+  "search_success_message": "[SUCCESS] Search complete! Found {count} unique results. ✅",
+  "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches."
 }

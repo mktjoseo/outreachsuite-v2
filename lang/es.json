@@ -23,7 +23,6 @@
   "affinity_subtitle": "Descubre medios relevantes basándote en datos SEO reales.",
   "step2_title": "Encuentra Medios de Afinidad",
   "project_url_label": "URL del Proyecto",
-  "analyze_btn": "Analizar y Generar",
   "keywords_label": "Keywords o Temas",
   "add_keyword_placeholder": "Añade keyword...",
   "add_btn": "Añadir",
@@ -72,5 +71,7 @@
   "save_to_project_btn": "Guardar en Proyecto",
   "media_saved": "Guardado ✔️",
   "select_project_alert": "Por favor, primero marca un proyecto como activo desde la página de 'Proyectos'.",
-  "saved_media_title": "Medios Guardados"
+  "saved_media_title": "Medios Guardados",
+  "search_success_message": "[SUCCESS] ¡Búsqueda completada! Se encontraron {count} resultados únicos. ✅",
+  "search_warn_message": "[WARN] La búsqueda finalizó, pero algunas keywords fallaron. Se encontraron {count} resultados de las búsquedas exitosas."
 }

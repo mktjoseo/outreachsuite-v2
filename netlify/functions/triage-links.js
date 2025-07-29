@@ -12,14 +12,25 @@ exports.handler = async function(event) {
     }
 
     try {
-        const { urls } = JSON.parse(event.body);
+        const { urls, language } = JSON.parse(event.body);
         if (!urls || !Array.isArray(urls) || urls.length === 0) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Error: "urls" array parameter is missing or empty.' }) };
         }
 
+        // --- LÓGICA MULTILINGÜE ---
+        const languageKeywords = {
+            'en': ['contact', 'about', 'team', 'impressum'],
+            'es': ['contacto', 'acerca', 'nosotros', 'quienes-somos', 'aviso-legal'],
+            'pl': ['kontakt', 'o-nas', 'zespol'],
+            'it': ['contatti', 'chi-siamo', 'team'],
+            'de': ['kontakt', 'uber-uns', 'impressum', 'team'],
+            'fr': ['contact', 'a-propos', 'equipe', 'mentions-legales']
+        };
+        const keywords = languageKeywords[language] || languageKeywords['en']; // Default to English if language not found
+
         const prompt = `
             From the following list of URLs, which 2 are the most likely to contain direct contact information like an email address or a contact form?
-            Prioritize URLs containing words like 'contact', 'about', 'team', or 'impressum'.
+            Prioritize URLs containing words like '${keywords.join("', '")}'.
             Return ONLY a JSON object that strictly follows the provided schema, containing an array of the top 2 most promising URLs. If the list has 2 or fewer URLs, return them all.
 
             List of URLs to analyze:

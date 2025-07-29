@@ -69,108 +69,17 @@
             <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
                 
                 <div id="home-view" class="view">
-                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="home_title">Select a function</h1>
-                    <p class="text-lg text-slate-500 mt-2" data-translate-key="home_subtitle">Choose one of the available tools to start.</p>
-                    <div class="grid md:grid-cols-3 gap-6 mt-8">
-                        <a href="#projects" class="view-switcher bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow border border-gray-200 flex flex-col items-center text-center">
-                            <svg class="h-12 w-12 text-[#BF103C] mb-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.158a1 1 0 01.768.363L8.106 4.894a1 1 0 00.768.363H16a1 1 0 011 1v2a1 1 0 00-1-1h-7.894a1 1 0 01-.768-.363L4.158 3.106A1 1 0 003.39 3H3a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V9a1 1 0 00-2 0v6H4V4a1 1 0 00-1-1H2z" /></svg>
-                            <h3 class="text-xl font-bold text-slate-800" data-translate-key="projects_card_title">Project Management</h3>
-                            <p class="text-slate-500 mt-2" data-translate-key="projects_card_desc">Organize your work, manage keywords, and review saved media.</p>
-                        </a>
-                        <a href="#affinity-outreach" class="view-switcher bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow border border-gray-200 flex flex-col items-center text-center">
-                             <svg class="h-12 w-12 text-[#BF103C] mb-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5a1.5 1.5 0 00-1.293.707l-7 12a1.5 1.5 0 001.293 2.293h14a1.5 1.5 0 001.293-2.293l-7-12A1.5 1.5 0 0010 1.5zM9 6a1 1 0 112 0 1 1 0 01-2 0zm1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" /><circle cx="10" cy="3" r="1.5" /><circle cx="3" cy="15" r="1.5" /><circle cx="17" cy="15" r="1.5" /></svg>
-                            <h3 class="text-xl font-bold text-slate-800" data-translate-key="affinity_card_title">Affinity Outreach</h3>
-                            <p class="text-slate-500 mt-2" data-translate-key="affinity_card_desc">Finds relevant blogs and media for your topic.</p>
-                        </a>
-                        <a href="#hybrid-scraper" class="view-switcher bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow border border-gray-200 flex flex-col items-center text-center">
-                             <svg class="h-12 w-12 text-[#BF103C] mb-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
-                             <h3 class="text-xl font-bold text-slate-800" data-translate-key="hybrid_card_title">Hybrid Scraper</h3>
-                             <p class="text-slate-500 mt-2" data-translate-key="hybrid_card_desc">Scans any website to find contact emails.</p>
-                        </a>
                     </div>
-                </div>
-
                 <div id="projects-view" class="view hidden">
-                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="projects_title">My Projects</h1>
-                    <p class="text-lg text-slate-500 mt-2 mb-6" data-translate-key="projects_subtitle">Manage your outreach campaigns and keywords.</p>
-                    
-                    <div id="create-edit-project-container" class="hidden mb-8">
-                        <form id="project-form" class="bg-white rounded-xl shadow-md border border-gray-200">
-                           <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                             <h3 id="project-form-title" class="text-2xl font-bold text-slate-800">Create a New Project</h3>
-                             <button type="button" id="project-cancel-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button>
-                           </div>
-                           <input type="hidden" id="project-id-input">
-                           <div class="p-6">
-                             <h4 class="text-lg font-semibold text-slate-700" data-translate-key="step_1_title_projects">Step 1: Define Your Project</h4>
-                             <div class="grid md:grid-cols-2 gap-4 mt-4">
-                               <div>
-                                 <label for="project-name" class="block text-sm font-medium text-slate-600" data-translate-key="project_name_label">Project Name</label>
-                                 <input type="text" id="project-name" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_name_placeholder" placeholder="e.g., Launch Campaign for Client X">
-                               </div>
-                               <div>
-                                 <label for="project-url" class="block text-sm font-medium text-slate-600" data-translate-key="project_url_label">Project URL</label>
-                                 <input type="text" id="project-url" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" data-translate-key="project_url_placeholder" placeholder="domain.com">
-                               </div>
-                             </div>
-                           </div>
-                           <div class="p-6 border-t border-gray-200">
-                             <h4 class="text-lg font-semibold text-slate-700" data-translate-key="step_2_title_projects">Step 2 (Optional): Add Keywords</h4>
-                             <div class="grid md:grid-cols-2 gap-8 mt-4">
-                               <div>
-                                 <label for="project-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="project_keywords_label">Keywords</label>
-                                  <div class="flex items-center gap-2 mt-1">
-                                    <input type="text" id="project-keyword-input" class="w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword...">
-                                    <button type="button" id="project-add-keyword-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0" data-translate-key="add_btn">Add</button>
-                                  </div>
-                                 <div id="project-tags-container" class="mt-2 min-h-[40px]"></div>
-                               </div>
-                               <div class="bg-slate-50 p-4 rounded-lg border">
-                                    <h5 class="font-bold text-sky-700" data-translate-key="ai_explainer_title">Need Ideas? Powered by AI.</h5>
-                                    <p class="text-sm text-slate-600 mt-1 mb-3" data-translate-key="ai_explainer_desc">Use our AI feature to analyze your project's URL...</p>
-                                    <div id="keyword-generator-step-1">
-                                        <h6 class="font-semibold text-slate-700" data-translate-key="step_A_title">Step A: Fetch Website Content</h6>
-                                        <div class="flex items-center my-2">
-                                            <input type="checkbox" id="project-render-js-checkbox" class="h-4 w-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500">
-                                            <label for="project-render-js-checkbox" class="ml-2 block text-sm text-slate-600" data-translate-key="deep_scan_label">Deep Scan (slower)</label>
-                                        </div>
-                                        <button type="button" id="project-fetch-content-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="fetch_content_btn">Fetch Content</button>
-                                    </div>
-                                    <div id="keyword-generator-step-2" class="hidden">
-                                        <h6 class="font-semibold text-slate-700" data-translate-key="step_B_title">Step B: Analyze Text with AI</h6>
-                                        <p id="fetch-success-msg" class="text-sm text-green-700 my-2"></p>
-                                        <button type="button" id="project-analyze-text-btn" class="w-full bg-sky-800 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="analyze_text_btn">Analyze Text with AI</button>
-                                    </div>
-                               </div>
-                             </div>
-                             <div id="project-keyword-log-container-wrapper" class="hidden bg-slate-800 text-white rounded-xl p-4 mt-4">
-                                <div id="project-keyword-log-container" class="console-font text-sm h-32 overflow-y-auto pr-2"></div>
-                             </div>
-                           </div>
-                           <div class="p-6 bg-gray-50 rounded-b-xl border-t border-gray-200 flex justify-center">
-                                <button type="submit" id="project-submit-btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="create_project_btn">Save Project</button>
-                           </div>
-                        </form>
                     </div>
-
-                    <div id="projects-list-view">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-2xl font-bold text-slate-800" data-translate-key="project_list_title">Your Projects</h2>
-                            <button id="add-project-btn" class="bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                <span data-translate-key="add_project_btn">Add New Project</span>
-                            </button>
-                        </div>
-                        <div id="projects-list-container" class="space-y-4"></div>
-                    </div>
-                </div>
 
                 <div id="hybrid-scraper-view" class="view hidden">
                     <h1 class="text-4xl font-bold text-slate-800" data-translate-key="hybrid_title">Hybrid Scraper</h1>
                     <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="hybrid_subtitle">Uncover contact information from any website.</p>
-                    <div class="flex gap-2">
-                        <input type="text" id="hs-url-input" class="w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
-                        <button id="hs-scrape-btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                        <input type="text" id="hs-url-input" class="md:col-span-2 w-full p-3 border border-gray-300 rounded-lg" data-translate-key="hybrid_placeholder" placeholder="Enter the website URL to investigate...">
+                        <select id="hs-language-select" class="w-full p-3 border border-gray-300 rounded-lg bg-white"></select>
+                        <button id="hs-scrape-btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="hybrid_search_btn">Search</button>
                     </div>
                     <div id="hs-results-container" class="mt-8"></div>
                     <div id="hs-prompt-container" class="hidden mt-6 bg-slate-700 p-6 rounded-lg shadow-md text-left">
@@ -185,81 +94,9 @@
                 </div>
 
                 <div id="affinity-outreach-view" class="view hidden">
-                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="affinity_title">Affinity Outreach Finder</h1>
-                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="affinity_subtitle">Discover relevant media outlets based on real SEO data.</p>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="step2_title">Find Affinity Media</h3>
-                        <p class="text-sm text-slate-500 mb-4">Use keywords from your active project or add them manually to find media.</p>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="ao-keyword-input" class="block text-sm font-medium text-slate-600" data-translate-key="keywords_label">Keywords or Topics</label>
-                                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 mt-1">
-                                    <input type="text" id="ao-keyword-input" class="w-full p-2 border border-gray-300 rounded-lg" data-translate-key="add_keyword_placeholder" placeholder="Add keyword...">
-                                    <button id="ao-add-keyword-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="add_btn">Add</button>
-                                    <button id="ao-clear-keywords-btn" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg" data-translate-key="clear_btn">Clear</button>
-                                </div>
-                                <div id="ao-tags-container" class="mt-2"></div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label for="ao-search-type" class="flex items-center">
-                                        <span data-translate-key="search_type_label">Search Type</span>
-                                        <span class="tooltip-container ml-2">
-                                            <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg>
-                                            <span id="ao-search-type-tooltip" class="tooltip-text"></span>
-                                        </span>
-                                    </label>
-                                    <select id="ao-search-type" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
-                                </div>
-                                <div>
-                                    <label for="ao-country" data-translate-key="country_label">Country</label>
-                                    <select id="ao-country" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
-                                </div>
-                                <div>
-                                    <label for="ao-language" data-translate-key="language_label">Language</label>
-                                    <select id="ao-language" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
-                                </div>
-                            </div>
-                            <div class="flex justify-center">
-                               <button id="ao-search-media-btn" class="bg-[#BF103C] text-white font-bold py-2 px-6 rounded-lg" data-translate-key="search_media_btn">Search Media</button>
-                            </div>
-                        </div>
                     </div>
-                    <div id="ao-results-wrapper" class="mt-8">
-                         <div id="ao-results-header" class="hidden justify-between items-center mb-4">
-                            <h3 class="text-2xl font-bold text-slate-800">Results</h3>
-                            <button id="ao-export-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="export_selected_btn">Export Selected</button>
-                        </div>
-                        <div id="ao-results-container"></div>
-                    </div>
-                    <div id="ao-log-container-wrapper" class="hidden mt-6 bg-slate-800 text-white rounded-xl p-4">
-                        <div id="ao-log-container" class="console-font text-sm h-64 overflow-y-auto pr-2"></div>
-                    </div>
-                </div>
-
                 <div id="settings-view" class="view hidden">
-                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="settings_title">Settings</h1>
-                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="settings_subtitle">Manage your preferences and API keys.</p>
-                    <div class="max-w-2xl mx-auto space-y-8">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="profile_settings_title">Profile Information</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label for="user-first-name" data-translate-key="first_name_label">First Name</label><input type="text" id="user-first-name" class="w-full p-2 mt-1 border rounded-lg"></div>
-                                <div><label for="user-last-name" data-translate-key="last_name_label">Last Name</label><input type="text" id="user-last-name" class="w-full p-2 mt-1 border rounded-lg"></div>
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                             <h3 class="text-xl font-bold text-slate-800" data-translate-key="api_keys_title">API Keys</h3>
-                             <p class="text-slate-500 text-sm mt-1 mb-4" data-translate-key="api_keys_subtitle">This feature will be enabled in a future update.</p>
-                             <div class="space-y-4">
-                                <div><label class="font-medium text-slate-600">Gemini API Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
-                                <div><label class="font-medium text-slate-600">ScraperAPI Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
-                             </div>
-                        </div>
-                        <div id="settings-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg"></div>
-                        <button id="save-settings-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="save_settings_btn">Save Settings</button>
                     </div>
-                </div>
             </main>
         </div>
     </div>

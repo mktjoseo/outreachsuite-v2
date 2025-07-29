@@ -201,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const createEditProjectContainer = document.getElementById('create-edit-project-container');
         const projectsListView = document.getElementById('projects-list-view');
         
-        // Keyword Generator Elements
         const fetchContentBtn = document.getElementById('project-fetch-content-btn');
         const analyzeTextBtn = document.getElementById('project-analyze-text-btn');
         const renderJsCheckbox = document.getElementById('project-render-js-checkbox');
@@ -342,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchSuccessMsg.textContent = `Content extracted (${data.characters} chars). Ready for AI analysis.`;
             } catch(e) { 
                 logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
-                step1Div.classList.remove('hidden'); // Show step 1 again on failure
+                step1Div.classList.remove('hidden');
                 step2Div.classList.add('hidden');
             } finally {
                 fetchContentBtn.disabled = false;
@@ -482,6 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // =================================================================================
         const hs_urlInput = document.getElementById('hs-url-input');
         const hs_scrapeBtn = document.getElementById('hs-scrape-btn');
+        const hs_languageSelect = document.getElementById('hs-language-select');
         const hs_resultsContainer = document.getElementById('hs-results-container');
         const hs_logContainerWrapper = document.getElementById('hs-log-container-wrapper');
         const hs_logContainer = document.getElementById('hs-log-container');
@@ -490,6 +490,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const hs_promptLinks = document.getElementById('hs-prompt-links');
         const hs_deepScanBtn = document.getElementById('hs-deep-scan-btn');
         
+        const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
+        Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
+
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -541,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!resultsFound) {
-                hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg text-center text-slate-600"><p>The search has finished, but no contact information was found.</p></div>`;
+                hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg text-center text-slate-600"><p>The initial scan found no contact information.</p></div>`;
             }
         };
 
@@ -592,14 +595,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (emails.length === 0) {
                     logToConsole(hs_logContainer, `[WARN] No emails found on homepage. Looking for contact pages...`);
                     const links = Array.from(new Set(html.match(/href="([^"]+)"/g)
-                        .map(match => match.slice(6, -1))
+                        ?.map(match => match.slice(6, -1))
                         .map(link => { try { return new URL(link, urlToScrape).href; } catch(e) { return null; }})
-                        .filter(link => link && new URL(link).hostname === new URL(urlToScrape).hostname)
+                        .filter(link => link && new URL(link).hostname === new URL(urlToScrape).hostname) ?? []
                     ));
                     
                     logToConsole(hs_logContainer, `[INFO] Found ${links.length} internal links. Asking Gemini to select contact pages...`);
-                    const triageResponse = await fetch(`/.netlify/functions/triage-links`, { method: 'POST', body: JSON.stringify({ urls: links }) });
-                    const { selectedUrls } = await triageResponse.json();
+                    const triageResponse = await fetch(`/.netlify/functions/triage-links`, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ urls: links, language: hs_languageSelect.value }) 
+                    });
+                    const { selectedUrls, error } = await triageResponse.json();
+
+                    if(error) throw new Error(`AI Triage Error: ${error}`);
                     
                     if (selectedUrls && selectedUrls.length > 0) {
                         logToConsole(hs_logContainer, `[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
@@ -622,7 +630,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         hs_scrapeBtn.addEventListener('click', hs_scrape);
-
 
         // =================================================================================
         // 💜 AFFINITY OUTREACH LOGIC
@@ -783,59 +790,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ao_searchMediaBtn.addEventListener('click', async () => {
             if (ao_keywords.length === 0) {
-        alert('Please add at least one keyword.');
-        return;
-    }
-    
-    ao_searchMediaBtn.disabled = true;
-    ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
-    ao_logContainerWrapper.classList.remove('hidden');
-    ao_logContainer.innerHTML = '';
-    ao_resultsContainer.innerHTML = '';
-    ao_resultsHeader.classList.add('hidden');
-    ao_currentResults = [];
-    startConsoleAnimation();
-
-    // --- CAMBIO: Se añade una bandera para rastrear los fallos ---
-    let allSearchesSucceeded = true;
-
-    const country = ao_countrySelect.value;
-    const language = ao_languageSelect.value;
-    const searchType = ao_searchTypeSelect.value;
-    
-    const promises = ao_keywords.map(kw => 
-        fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`)
-    );
-    
-    for (const promise of promises) {
-        try {
-            const response = await promise;
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || `Request failed with status ${response.status}`);
+                alert('Please add at least one keyword.');
+                return;
+            }
             
-            if (result.log) result.log.forEach(msg => logToConsole(ao_logContainer, msg));
-            if (result.directResults) ao_currentResults.push(...result.directResults);
-        } catch(e) {
-            logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
-            // --- CAMBIO: Si algo falla, se actualiza la bandera ---
-            allSearchesSucceeded = false;
-        }
-    }
-    
-    stopConsoleAnimation();
-    ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()];
-    ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
-    ao_renderResults(ao_currentResults);
+            ao_searchMediaBtn.disabled = true;
+            ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
+            ao_logContainerWrapper.classList.remove('hidden');
+            ao_logContainer.innerHTML = '';
+            ao_resultsContainer.innerHTML = '';
+            ao_resultsHeader.classList.add('hidden');
+            ao_currentResults = [];
+            startConsoleAnimation();
 
-    // --- The final message depends on whether there were any errors. ---
-    if (allSearchesSucceeded) {
-        logToConsole(ao_logContainer, `[SUCCESS] Search complete! Found ${ao_currentResults.length} unique results. ✅`);
-    } else {
-        logToConsole(ao_logContainer, `[WARN] Search finished, but some keywords failed to process. Found ${ao_currentResults.length} results from the successful searches.`);
-    }
+            let allSearchesSucceeded = true;
 
-    ao_searchMediaBtn.disabled = false;
-    ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
+            const country = ao_countrySelect.value;
+            const language = ao_languageSelect.value;
+            const searchType = ao_searchTypeSelect.value;
+            
+            const promises = ao_keywords.map(kw => 
+                fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`)
+            );
+            
+            for (const promise of promises) {
+                try {
+                    const response = await promise;
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || `Request failed with status ${response.status}`);
+                    
+                    if (result.log) result.log.forEach(msg => logToConsole(ao_logContainer, msg));
+                    if (result.directResults) ao_currentResults.push(...result.directResults);
+                } catch(e) {
+                    logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
+                    allSearchesSucceeded = false;
+                }
+            }
+            
+            stopConsoleAnimation();
+            ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()];
+            ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
+            ao_renderResults(ao_currentResults);
+
+            if (allSearchesSucceeded) {
+                const message = (currentTranslations['search_success_message'] || "[SUCCESS] Search complete! Found {count} unique results. ✅")
+                    .replace('{count}', ao_currentResults.length);
+                logToConsole(ao_logContainer, message);
+            } else {
+                const message = (currentTranslations['search_warn_message'] || "[WARN] Search finished, but some keywords failed. Found {count} results.")
+                    .replace('{count}', ao_currentResults.length);
+                logToConsole(ao_logContainer, message);
+            }
+
+            ao_searchMediaBtn.disabled = false;
+            ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
         });
 
         await loadProjects(user);
