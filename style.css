@@ -1,8 +1,8 @@
 body { font-family: 'Poppins', sans-serif; }
 .console-font { font-family: 'Fira Code', monospace; }
-#log-container::-webkit-scrollbar, #ao-keyword-log-container::-webkit-scrollbar, #ao-log-container::-webkit-scrollbar { width: 8px; }
-#log-container::-webkit-scrollbar-track, #ao-keyword-log-container::-webkit-scrollbar-track, #ao-log-container::-webkit-scrollbar-track { background: #2d3748; }
-#log-container::-webkit-scrollbar-thumb, #ao-keyword-log-container::-webkit-scrollbar-thumb, #ao-log-container::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 20px; border: 3px solid #2d3748; }
+#log-container::-webkit-scrollbar, #ao-keyword-log-container::-webkit-scrollbar, #ao-log-container::-webkit-scrollbar, #hs-log-container::-webkit-scrollbar, #project-keyword-log-container::-webkit-scrollbar { width: 8px; }
+#log-container::-webkit-scrollbar-track, #ao-keyword-log-container::-webkit-scrollbar-track, #ao-log-container::-webkit-scrollbar-track, #hs-log-container::-webkit-scrollbar-track, #project-keyword-log-container::-webkit-scrollbar-track { background: #2d3748; }
+#log-container::-webkit-scrollbar-thumb, #ao-keyword-log-container::-webkit-scrollbar-thumb, #ao-log-container::-webkit-scrollbar-thumb, #hs-log-container::-webkit-scrollbar-thumb, #project-keyword-log-container::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 20px; border: 3px solid #2d3748; }
 .disabled-btn, button:disabled, input:disabled { opacity: 0.6; cursor: not-allowed; }
 .sidebar-link { display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1; border-radius: 0.5rem; padding: 0.75rem 1rem; transition: color 0.2s, background-color 0.2s; }
 .sidebar-link:hover { background-color: rgba(71, 85, 105, 0.5); }
@@ -12,8 +12,8 @@ body { font-family: 'Poppins', sans-serif; }
 .loader {
     width: 24px;
     height: 24px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white; /* El color principal lo da el botón, este es un fallback */
+    border: 3px solid rgba(255, 255, 255, 0.3); /* Color del 'camino' del spinner */
+    border-top-color: white; /* Color de la parte que gira */
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -30,3 +30,38 @@ body.logged-in #app-container { display: flex; }
 .project-accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
 .project-accordion-content.open { max-height: 2000px; }
 .accordion-arrow.open { transform: rotate(180deg); }
+
+/* Tooltip para Affinity Search */
+.tooltip-container { position: relative; display: inline-block; cursor: pointer; }
+.tooltip-text {
+    visibility: hidden;
+    width: 280px;
+    background-color: #334155; /* slate-700 */
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 8px 12px;
+    position: absolute;
+    z-index: 10;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -140px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #334155 transparent transparent transparent;
+}
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}

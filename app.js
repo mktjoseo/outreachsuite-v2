@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ao_keywords = [];
     let ao_currentResults = [];
     let consoleInterval = null;
+    let extractedTextState = null;
 
     // --- UNIVERSAL LOGGING FUNCTION ---
     const logToConsole = (container, message) => {
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             document.title = translations['app_title'] || 'OutreachSuite';
-            document.getElementById('ao-search-type-desc').textContent = currentTranslations[`search_type_desc_${document.getElementById('ao-search-type').value.split('_')[0]}`] || '';
+            document.getElementById('ao-search-type-tooltip').innerHTML = translations['search_type_tooltip_content'] || '';
             const langEnBtn = document.getElementById('lang-en');
             const langEsBtn = document.getElementById('lang-es');
             if (langEnBtn && langEsBtn) {
@@ -196,13 +197,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectSubmitBtn = document.getElementById('project-submit-btn');
         const projectCancelBtn = document.getElementById('project-cancel-btn');
         const projectsListContainer = document.getElementById('projects-list-container');
-        const projectAnalyzeKeywordsBtn = document.getElementById('project-analyze-keywords-btn');
-        const projectKeywordLogContainerWrapper = document.getElementById('project-keyword-log-container-wrapper');
-        const projectKeywordLogContainer = document.getElementById('project-keyword-log-container');
         const addProjectBtn = document.getElementById('add-project-btn');
         const createEditProjectContainer = document.getElementById('create-edit-project-container');
         const projectsListView = document.getElementById('projects-list-view');
         
+        // Keyword Generator Elements
+        const fetchContentBtn = document.getElementById('project-fetch-content-btn');
+        const analyzeTextBtn = document.getElementById('project-analyze-text-btn');
+        const renderJsCheckbox = document.getElementById('project-render-js-checkbox');
+        const step1Div = document.getElementById('keyword-generator-step-1');
+        const step2Div = document.getElementById('keyword-generator-step-2');
+        const fetchSuccessMsg = document.getElementById('fetch-success-msg');
+        const projectKeywordLogContainerWrapper = document.getElementById('project-keyword-log-container-wrapper');
+        const projectKeywordLogContainer = document.getElementById('project-keyword-log-container');
+
         let projectKeywordsState = [];
 
         const renderProjectTags = () => {
@@ -242,7 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
             projectKeywordsState = [];
             renderProjectTags();
             projectFormTitle.textContent = currentTranslations['create_edit_title_create'] || "Create a New Project";
-            projectSubmitBtn.textContent = currentTranslations['create_project_btn'] || "Save Project";
+            step1Div.classList.remove('hidden');
+            step2Div.classList.add('hidden');
+            extractedTextState = null;
             projectKeywordLogContainerWrapper.classList.add('hidden');
         };
         
@@ -269,11 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div>
                         <div class="flex justify-between items-center mb-2 mt-4">
                             <h5 class="font-bold" data-translate-key="saved_media_title">Saved Media</h5>
-                            <button class="export-project-media-btn bg-[#BF103C] text-white text-xs font-bold py-1 px-3 rounded-lg">Export Selected</button>
                         </div>
                         <div class="space-y-2">${media.map(m => `
                             <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
-                                <input type="checkbox" class="project-media-checkbox h-4 w-4 text-[#BF103C] border-gray-300 rounded focus:ring-[#BF103C]" data-url="${m.url}">
                                 <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
                                 <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
                             </div>
@@ -299,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const editProject = (project) => {
             showProjectForm(true);
             projectFormTitle.textContent = `${currentTranslations['create_edit_title_edit'] || "Editing Project"}: ${project.name}`;
-            projectSubmitBtn.textContent = currentTranslations['create_project_btn'] || "Save Project";
             projectIdInput.value = project.id;
             projectNameInput.value = project.name;
             projectUrlInput.value = project.url;
@@ -307,36 +314,72 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProjectTags();
         };
         
-        projectAnalyzeKeywordsBtn.addEventListener('click', async () => {
+        fetchContentBtn.addEventListener('click', async () => {
             const url = normalizeUrl(projectUrlInput.value);
             if (!url) { alert('Please enter a project URL to analyze.'); return; }
             
             projectKeywordLogContainerWrapper.classList.remove('hidden');
             projectKeywordLogContainer.innerHTML = '';
+            fetchContentBtn.disabled = true;
+            fetchContentBtn.innerHTML = `<div class="loader mx-auto"></div>`;
 
             try {
-                logToConsole(projectKeywordLogContainer, '[INFO] Calling keyword generation function...');
-                const response = await fetch('/.netlify/functions/generate-keywords', {
+                logToConsole(projectKeywordLogContainer, '[INFO] Fetching content from URL...');
+                const response = await fetch('/.netlify/functions/fetch-content', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ projectUrl: url, render: true })
+                    body: JSON.stringify({ projectUrl: url, render: renderJsCheckbox.checked })
                 });
 
-                if (!response.headers.get('content-type')?.includes('application/json')) {
-                    throw new Error("The server response was not in the expected format. The function may have timed out after 25 seconds.");
-                }
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to fetch content.');
+
+                extractedTextState = data.textContent;
+                logToConsole(projectKeywordLogContainer, `[SUCCESS] Content extracted successfully (${data.characters} characters). Ready to analyze.`);
+                
+                step1Div.classList.add('hidden');
+                step2Div.classList.remove('hidden');
+                fetchSuccessMsg.textContent = `Content extracted (${data.characters} chars). Ready for AI analysis.`;
+            } catch(e) { 
+                logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
+                step1Div.classList.remove('hidden'); // Show step 1 again on failure
+                step2Div.classList.add('hidden');
+            } finally {
+                fetchContentBtn.disabled = false;
+                fetchContentBtn.innerHTML = currentTranslations['fetch_content_btn'] || 'Fetch Content';
+            }
+        });
+
+        analyzeTextBtn.addEventListener('click', async () => {
+            if (!extractedTextState) { alert('No content to analyze.'); return; }
+
+            analyzeTextBtn.disabled = true;
+            analyzeTextBtn.innerHTML = `<div class="loader mx-auto"></div>`;
+            
+            try {
+                logToConsole(projectKeywordLogContainer, '[INFO] Sending content to Gemini for analysis...');
+                const response = await fetch('/.netlify/functions/analyze-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ textContent: extractedTextState, domain: new URL(projectUrlInput.value).hostname })
+                });
 
                 const data = await response.json();
-                (data.log || []).forEach(msg => logToConsole(projectKeywordLogContainer, msg));
-
-                if (!response.ok) throw new Error(data.error || 'Failed to generate keywords.');
+                if (!response.ok) throw new Error(data.error || 'Failed to analyze text.');
+                
+                logToConsole(projectKeywordLogContainer, `[SUCCESS] Gemini analysis complete!`);
                 
                 const combined = [...new Set([...projectKeywordsState, ...data.existingKeywords, ...data.opportunityKeywords])];
                 projectKeywordsState = combined;
                 renderProjectTags();
-
-            } catch(e) { 
+                
+                step1Div.classList.remove('hidden');
+                step2Div.classList.add('hidden');
+            } catch(e) {
                 logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
+            } finally {
+                analyzeTextBtn.disabled = false;
+                analyzeTextBtn.innerHTML = currentTranslations['analyze_text_btn'] || 'Analyze Text with AI';
             }
         });
 
@@ -446,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hs_promptMessage = document.getElementById('hs-prompt-message');
         const hs_promptLinks = document.getElementById('hs-prompt-links');
         const hs_deepScanBtn = document.getElementById('hs-deep-scan-btn');
-
+        
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -517,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
-            logToConsole(hs_logContainer, `[SUCCESS] Deep Scan finished. Total unique emails found: ${emails.length}.`);
+            logToConsole(hs_logContainer, `[SUCCESS] Deep Scan finished. Total unique emails found: ${emails.length}. Search complete! ✅`);
             hs_renderResults(emails, socials);
         };
 
@@ -565,9 +608,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         hs_promptContainer.classList.remove('hidden');
                         hs_deepScanBtn.onclick = () => hs_executeDeepScan(selectedUrls, emails, socials);
                     } else {
-                        logToConsole(hs_logContainer, `[INFO] Gemini didn't find specific contact pages. Search complete.`);
+                        logToConsole(hs_logContainer, `[SUCCESS] Gemini didn't find specific contact pages. Search complete! ✅`);
                         if (socials.length > 0) hs_renderResults(emails, socials); else hs_renderResults([], []);
                     }
+                } else {
+                    logToConsole(hs_logContainer, `[SUCCESS] Search complete! ✅`);
                 }
             } catch (e) {
                 logToConsole(hs_logContainer, `[FATAL] ${e.message}`);
@@ -595,7 +640,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ao_searchTypeSelect = document.getElementById('ao-search-type');
         const ao_countrySelect = document.getElementById('ao-country');
         const ao_languageSelect = document.getElementById('ao-language');
-        const ao_searchTypeDesc = document.getElementById('ao-search-type-desc');
 
         const ao_renderTags = () => {
             ao_tagsContainer.innerHTML = '';
@@ -629,25 +673,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ao_clearKeywordsBtn.addEventListener('click', () => { ao_keywords = []; ao_renderTags(); });
 
         const ao_populateSelects = () => {
-            ao_searchTypeSelect.innerHTML = '';
-            ao_countrySelect.innerHTML = '';
-            ao_languageSelect.innerHTML = '';
+            ao_searchTypeSelect.innerHTML = ''; ao_countrySelect.innerHTML = ''; ao_languageSelect.innerHTML = '';
             const searchTypes = {'Top Authority': 'top_authority', 'Established': 'established', 'Rising Stars': 'rising_stars'};
             const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar', 'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Germany': 'de', 'France': 'fr', 'Italy': 'it', 'Poland': 'pl' };
             const languages = {'English': 'en', 'Spanish': 'es', 'German': 'de', 'French': 'fr', 'Italian': 'it', 'Polish': 'pl'};
             Object.entries(searchTypes).forEach(([name, code]) => ao_searchTypeSelect.add(new Option(name, code)));
             Object.entries(countries).forEach(([name, code]) => ao_countrySelect.add(new Option(name, code)));
             Object.entries(languages).forEach(([name, code]) => ao_languageSelect.add(new Option(name, code)));
-            updateSearchTypeDesc();
         };
         ao_populateSelects();
-
-        const updateSearchTypeDesc = () => {
-            const selectedType = ao_searchTypeSelect.value.split('_')[0];
-            const key = `search_type_desc_${selectedType}`;
-            ao_searchTypeDesc.textContent = currentTranslations[key] || '';
-        };
-        ao_searchTypeSelect.addEventListener('change', updateSearchTypeDesc);
         
         const countryLanguageMap = { 'es': 'es', 'mx': 'es', 'ar': 'es', 'co': 'es', 'cl': 'es', 'pe': 'es', 'us': 'en', 'uk': 'en', 'de': 'de', 'fr': 'fr', 'it': 'it', 'pl': 'pl' };
         ao_countrySelect.addEventListener('change', () => {
@@ -657,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const ao_startConsoleAnimation = () => {
+        const startConsoleAnimation = () => {
             if (consoleInterval) clearInterval(consoleInterval);
             let dots = '';
             const thinkingElement = document.createElement('p');
@@ -671,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         };
 
-        const ao_stopConsoleAnimation = () => {
+        const stopConsoleAnimation = () => {
             clearInterval(consoleInterval);
             consoleInterval = null;
             const thinkingElement = document.getElementById('thinking-animation');
@@ -749,6 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ao_searchMediaBtn.addEventListener('click', async () => {
             if (ao_keywords.length === 0) { alert('Please add at least one keyword.'); return; }
+            
             ao_searchMediaBtn.disabled = true;
             ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
             ao_logContainerWrapper.classList.remove('hidden');
@@ -756,27 +791,34 @@ document.addEventListener('DOMContentLoaded', () => {
             ao_resultsContainer.innerHTML = '';
             ao_resultsHeader.classList.add('hidden');
             ao_currentResults = [];
-            ao_startConsoleAnimation();
+            startConsoleAnimation();
 
             const country = ao_countrySelect.value;
             const language = ao_languageSelect.value;
             const searchType = ao_searchTypeSelect.value;
             
-            const promises = ao_keywords.map(kw => fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`).then(res => res.json()));
-
+            const promises = ao_keywords.map(kw => 
+                fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`)
+            );
+            
             for (const promise of promises) {
                 try {
-                    const result = await promise;
+                    const response = await promise;
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || `Request failed with status ${response.status}`);
+                    
                     if (result.log) result.log.forEach(msg => logToConsole(ao_logContainer, msg));
-                    if (result.error) continue;
-                    ao_currentResults.push(...result.directResults);
-                } catch(e) { logToConsole(ao_logContainer, `[FATAL] A keyword search failed completely. ${e.message}`); }
+                    if (result.directResults) ao_currentResults.push(...result.directResults);
+                } catch(e) {
+                    logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
+                }
             }
             
-            ao_stopConsoleAnimation();
-            ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()]; // Deduplicate by URL
+            stopConsoleAnimation();
+            ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()];
             ao_currentResults.sort((a,b) => b.relevanceScore - a.relevanceScore);
             ao_renderResults(ao_currentResults);
+            logToConsole(ao_logContainer, `[SUCCESS] Search complete! Found ${ao_currentResults.length} unique results. ✅`);
 
             ao_searchMediaBtn.disabled = false;
             ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';

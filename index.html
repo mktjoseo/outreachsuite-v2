@@ -126,17 +126,29 @@
                                  <div id="project-tags-container" class="mt-2 min-h-[40px]"></div>
                                </div>
                                <div class="bg-slate-50 p-4 rounded-lg border">
-                                  <h5 class="font-bold text-sky-700" data-translate-key="ai_explainer_title">Need Ideas? Powered by AI.</h5>
-                                  <p class="text-sm text-slate-600 mt-1 mb-3" data-translate-key="ai_explainer_desc">Use our AI feature to analyze your project's URL...</p>
-                                  <button type="button" id="project-analyze-keywords-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="analyze_btn">Analyze & Generate</button>
+                                    <h5 class="font-bold text-sky-700" data-translate-key="ai_explainer_title">Need Ideas? Powered by AI.</h5>
+                                    <p class="text-sm text-slate-600 mt-1 mb-3" data-translate-key="ai_explainer_desc">Use our AI feature to analyze your project's URL...</p>
+                                    <div id="keyword-generator-step-1">
+                                        <h6 class="font-semibold text-slate-700" data-translate-key="step_A_title">Step A: Fetch Website Content</h6>
+                                        <div class="flex items-center my-2">
+                                            <input type="checkbox" id="project-render-js-checkbox" class="h-4 w-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500">
+                                            <label for="project-render-js-checkbox" class="ml-2 block text-sm text-slate-600" data-translate-key="deep_scan_label">Deep Scan (slower)</label>
+                                        </div>
+                                        <button type="button" id="project-fetch-content-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="fetch_content_btn">Fetch Content</button>
+                                    </div>
+                                    <div id="keyword-generator-step-2" class="hidden">
+                                        <h6 class="font-semibold text-slate-700" data-translate-key="step_B_title">Step B: Analyze Text with AI</h6>
+                                        <p id="fetch-success-msg" class="text-sm text-green-700 my-2"></p>
+                                        <button type="button" id="project-analyze-text-btn" class="w-full bg-sky-800 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="analyze_text_btn">Analyze Text with AI</button>
+                                    </div>
                                </div>
                              </div>
                              <div id="project-keyword-log-container-wrapper" class="hidden bg-slate-800 text-white rounded-xl p-4 mt-4">
                                 <div id="project-keyword-log-container" class="console-font text-sm h-32 overflow-y-auto pr-2"></div>
                              </div>
                            </div>
-                           <div class="p-6 bg-gray-50 rounded-b-xl border-t border-gray-200">
-                                <button type="submit" id="project-submit-btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-4 rounded-lg" data-translate-key="create_project_btn">Save Project</button>
+                           <div class="p-6 bg-gray-50 rounded-b-xl border-t border-gray-200 flex justify-center">
+                                <button type="submit" id="project-submit-btn" class="bg-[#BF103C] text-white font-bold py-3 px-6 rounded-lg" data-translate-key="create_project_btn">Save Project</button>
                            </div>
                         </form>
                     </div>
@@ -190,9 +202,14 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label for="ao-search-type" data-translate-key="search_type_label">Search Type</label>
+                                    <label for="ao-search-type" class="flex items-center">
+                                        <span data-translate-key="search_type_label">Search Type</span>
+                                        <span class="tooltip-container ml-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg>
+                                            <span id="ao-search-type-tooltip" class="tooltip-text"></span>
+                                        </span>
+                                    </label>
                                     <select id="ao-search-type" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
-                                    <p id="ao-search-type-desc" class="text-xs text-slate-500 mt-1 min-h-[30px]"></p>
                                 </div>
                                 <div>
                                     <label for="ao-country" data-translate-key="country_label">Country</label>
@@ -203,7 +220,9 @@
                                     <select id="ao-language" class="w-full p-2 mt-1 border rounded-lg bg-white"></select>
                                 </div>
                             </div>
-                            <button id="ao-search-media-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="search_media_btn">Search Media</button>
+                            <div class="flex justify-center">
+                               <button id="ao-search-media-btn" class="bg-[#BF103C] text-white font-bold py-2 px-6 rounded-lg" data-translate-key="search_media_btn">Search Media</button>
+                            </div>
                         </div>
                     </div>
                     <div id="ao-results-wrapper" class="mt-8">
