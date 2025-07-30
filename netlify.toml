@@ -9,19 +9,23 @@
   node_bundler = "esbuild"
 
 # Increase the timeout for functions that can be slow due to external API calls.
+# Timeout is extended to 25 seconds, which is compatible with the free plan.
+
 [functions.scrape]
-  timeout = 25 # in seconds
+  timeout = 25
 
-# Se usa el timeout extendido de 25 segundos, que es compatible con el plan gratuito.
 [functions.affinity-search]
-  timeout = 25 # in seconds
-
-[functions.generate-keywords]
-  timeout = 25 # in seconds
+  timeout = 25
 
 [functions.ask-gemini]
-  timeout = 25 # in seconds
+  timeout = 25
 
-# New function of triage
 [functions.triage-links]
-  timeout = 25 # in seconds
+  timeout = 25
+
+# NEW FUNCTIONS
+[functions.fetch-content]
+  timeout = 25
+
+[functions.analyze-text]
+  timeout = 25

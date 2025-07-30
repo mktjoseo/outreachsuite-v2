@@ -73,6 +73,6 @@
   "select_project_alert": "Por favor, primero marca un proyecto como activo desde la página de 'Proyectos'.",
   "saved_media_title": "Medios Guardados",
   "search_success_message": "[SUCCESS] ¡Búsqueda completada! Se encontraron {count} resultados únicos. ✅",
-  "search_warn_message": "[WARN] La búsqueda finalizó, pero algunas keywords fallaron. Se encontraron {count} resultados de las búsquedas exitosas."
+  "search_warn_message": "[WARN] La búsqueda finalizó, pero algunas keywords fallaron. Se encontraron {count} resultados de las búsquedas exitosas.",
   "hybrid_scraper_lang_explainer": "Selecciona el idioma de la web de destino para mejorar la precisión de la búsqueda de páginas de contacto."
 }

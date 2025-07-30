@@ -69,10 +69,10 @@
   "create_project_btn": "Save Project",
   "no_projects": "No projects found. Create one to get started!",
   "save_to_project_btn": "Save to Project",
-  "media_saved": "Saved ✔️",
+  "media_saved": "Saved✔️",
   "select_project_alert": "Please set a project as active first from the 'Projects' page.",
   "saved_media_title": "Saved Media",
   "search_success_message": "[SUCCESS] Search complete! Found {count} unique results. ✅",
-  "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches."
+  "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches.",
   "hybrid_scraper_lang_explainer": "Select the target website's language to improve the accuracy of finding contact pages."
 }
