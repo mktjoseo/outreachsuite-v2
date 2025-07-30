@@ -931,4 +931,68 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
+
+    // --- START: Password Recovery Logic ---
+    
+    // Get the new DOM elements for the forms
+    const authFormContainer = document.getElementById('auth-form-container');
+    const recoveryFormContainer = document.getElementById('recovery-form-container');
+    
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const backToLoginLink = document.getElementById('back-to-login-link');
+    const sendRecoveryBtn = document.getElementById('send-recovery-btn');
+    const recoveryEmailInput = document.getElementById('recovery-email');
+
+    // Show the recovery form when the "Forgot Password" link is clicked
+    forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        authFormContainer.classList.add('hidden');
+        recoveryFormContainer.classList.remove('hidden');
+    });
+
+    // Go back to the login form
+    backToLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        recoveryFormContainer.classList.add('hidden');
+        authFormContainer.classList.remove('hidden');
+    });
+
+    // Handle the password recovery submission
+    sendRecoveryBtn.addEventListener('click', async () => {
+        const email = recoveryEmailInput.value;
+        if (!email) {
+            showAuthMessage("Please enter your email address.", "error"); // We can reuse the auth message box
+            return;
+        }
+
+        // Disable button to prevent multiple clicks
+        sendRecoveryBtn.disabled = true;
+        sendRecoveryBtn.innerHTML = '<div class="loader mx-auto"></div>';
+
+        try {
+            const { error } = await sb.auth.resetPasswordForEmail(email, {
+                // IMPORTANT: You might need to configure this URL in your Supabase project settings.
+                redirectTo: window.location.origin, 
+            });
+
+            if (error) {
+                // Show the error in the main auth error box for consistency
+                showAuthMessage(error.message, 'error');
+            } else {
+                // Show a generic success message to prevent email enumeration attacks
+                showAuthMessage("If an account exists for this email, a recovery link has been sent.", 'success');
+                // Hide the recovery form and show the main login form again after success
+                recoveryFormContainer.classList.add('hidden');
+                authFormContainer.classList.remove('hidden');
+            }
+        } catch (catchedError) {
+             showAuthMessage(catchedError.message, 'error');
+        } finally {
+            // Re-enable the button
+            sendRecoveryBtn.disabled = false;
+            sendRecoveryBtn.textContent = 'Send Recovery Link';
+        }
+    });
+
+    // --- END: Password Recovery Logic ---
 });

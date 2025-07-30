@@ -15,24 +15,49 @@
 
     <div id="auth-container" class="min-h-screen flex items-center justify-center bg-slate-50">
         <div class="p-8 bg-white rounded-xl shadow-lg max-w-md w-full">
-            <div class="text-center">
-                <h1 data-translate-key="login_title" class="text-4xl font-bold text-slate-800">Welcome to OutreachSuite</h1>
-                <p data-translate-key="login_subtitle" class="text-slate-500 mt-2 mb-8">Please log in to access the tools.</p>
-            </div>
+            
             <div id="auth-error" class="hidden bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4"></div>
             <div id="auth-success" class="hidden bg-green-100 text-green-700 text-sm p-3 rounded-lg mb-4"></div>
-            <form id="auth-form" class="space-y-4">
-                <input type="email" id="auth-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
-                <input type="password" id="auth-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
-                <select id="auth-language" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                </select>
-                <div class="flex gap-4">
-                    <button type="button" id="login-btn" data-translate-key="login_btn" class="w-full bg-slate-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-600 transition">Log In</button>
-                    <button type="button" id="signup-btn" data-translate-key="signup_btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transition">Sign Up</button>
+
+            <div id="auth-form-container">
+                <div class="text-center">
+                    <h1 data-translate-key="login_title" class="text-4xl font-bold text-slate-800">Welcome to OutreachSuite</h1>
+                    <p data-translate-key="login_subtitle" class="text-slate-500 mt-2 mb-8">Please log in to access the tools.</p>
                 </div>
-            </form>
+                <form id="auth-form" class="space-y-4">
+                    <input type="email" id="auth-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                    <input type="password" id="auth-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                    <select id="auth-language" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                    </select>
+                    <div class="text-right">
+                        <a href="#" id="forgot-password-link" data-translate-key="forgot_password_link" class="text-sm font-medium text-sky-600 hover:text-sky-500">
+                            Forgot your password?
+                        </a>
+                    </div>
+                    <div class="flex gap-4">
+                        <button type="button" id="login-btn" data-translate-key="login_btn" class="w-full bg-slate-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-600 transition">Log In</button>
+                        <button type="button" id="signup-btn" data-translate-key="signup_btn" class="w-full bg-[#BF103C] text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transition">Sign Up</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="recovery-form-container" class="hidden">
+                 <div class="text-center">
+                    <h1 data-translate-key="reset_password_title" class="text-4xl font-bold text-slate-800">Reset Password</h1>
+                    <p data-translate-key="reset_password_subtitle" class="text-slate-500 mt-2 mb-8">Enter your email to receive a recovery link.</p>
+                </div>
+                <form id="recovery-form" class="space-y-4">
+                    <input type="email" id="recovery-email" placeholder="Your Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                    <button type="button" id="send-recovery-btn" data-translate-key="send_recovery_btn" class="w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-500 transition">Send Recovery Link</button>
+                </form>
+                 <div class="text-center mt-4">
+                    <a href="#" id="back-to-login-link" data-translate-key="back_to_login_link" class="text-sm font-medium text-slate-600 hover:text-slate-500">
+                        &larr; Back to Login
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
     
