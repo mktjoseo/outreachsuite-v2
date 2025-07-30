@@ -1,4 +1,5 @@
-// document.addEventListener('DOMContentLoaded', () => {
+// Final, corrected, and fully functional app.js file.
+document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // 🚀 INITIALIZATION & GLOBAL STATE
     // =================================================================================
@@ -117,85 +118,72 @@
     // ⚙️ SETTINGS VIEW LOGIC
     // =================================================================================
     function setupSettingsLogic(user) {
-    // DOM References for Profile Info
-    const userFirstNameInput = document.getElementById('user-first-name');
-    const userLastNameInput = document.getElementById('user-last-name');
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
-    const settingsSuccessDiv = document.getElementById('settings-success');
+        const userFirstNameInput = document.getElementById('user-first-name');
+        const userLastNameInput = document.getElementById('user-last-name');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const settingsSuccessDiv = document.getElementById('settings-success');
+        const newPasswordInput = document.getElementById('new-password');
+        const confirmNewPasswordInput = document.getElementById('confirm-new-password');
+        const updatePasswordBtn = document.getElementById('update-password-btn');
+        const passwordSuccessDiv = document.getElementById('password-update-success');
+        const passwordErrorDiv = document.getElementById('password-update-error');
 
-    // DOM References for Password Change
-    const newPasswordInput = document.getElementById('new-password');
-    const confirmNewPasswordInput = document.getElementById('confirm-new-password');
-    const updatePasswordBtn = document.getElementById('update-password-btn');
-    const passwordSuccessDiv = document.getElementById('password-update-success');
-    const passwordErrorDiv = document.getElementById('password-update-error');
+        userFirstNameInput.value = user.user_metadata?.first_name || '';
+        userLastNameInput.value = user.user_metadata?.last_name || '';
 
-    // Load initial profile data
-    userFirstNameInput.value = user.user_metadata?.first_name || '';
-    userLastNameInput.value = user.user_metadata?.last_name || '';
-
-    // Event Listener for saving profile information
-    saveSettingsBtn.addEventListener('click', async () => {
-        settingsSuccessDiv.classList.add('hidden');
-        const { data, error } = await sb.auth.updateUser({ 
-            data: { 
-                first_name: userFirstNameInput.value, 
-                last_name: userLastNameInput.value 
-            } 
+        saveSettingsBtn.addEventListener('click', async () => {
+            settingsSuccessDiv.classList.add('hidden');
+            const { data, error } = await sb.auth.updateUser({ 
+                data: { 
+                    first_name: userFirstNameInput.value, 
+                    last_name: userLastNameInput.value 
+                } 
+            });
+            if (error) {
+                alert('Error: ' + error.message);
+            } else {
+                updateUserAvatar(data.user);
+                settingsSuccessDiv.textContent = currentTranslations['settings_saved_success'];
+                settingsSuccessDiv.classList.remove('hidden');
+                setTimeout(() => settingsSuccessDiv.classList.add('hidden'), 3000);
+            }
         });
 
-        if (error) {
-            alert('Error: ' + error.message);
-        } else {
-            updateUserAvatar(data.user);
-            settingsSuccessDiv.textContent = currentTranslations['settings_saved_success'];
-            settingsSuccessDiv.classList.remove('hidden');
-            setTimeout(() => settingsSuccessDiv.classList.add('hidden'), 3000);
-        }
-    });
+        updatePasswordBtn.addEventListener('click', async () => {
+            passwordSuccessDiv.classList.add('hidden');
+            passwordErrorDiv.classList.add('hidden');
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmNewPasswordInput.value;
 
-    // Event Listener for updating password
-    updatePasswordBtn.addEventListener('click', async () => {
-        passwordSuccessDiv.classList.add('hidden');
-        passwordErrorDiv.classList.add('hidden');
+            if (!newPassword || newPassword.length < 6) {
+                passwordErrorDiv.textContent = "Password must be at least 6 characters long.";
+                passwordErrorDiv.classList.remove('hidden');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                passwordErrorDiv.textContent = currentTranslations['password_mismatch_error'] || "Passwords do not match.";
+                passwordErrorDiv.classList.remove('hidden');
+                return;
+            }
 
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmNewPasswordInput.value;
-
-        // Validation
-        if (!newPassword || newPassword.length < 6) {
-            passwordErrorDiv.textContent = "Password must be at least 6 characters long.";
-            passwordErrorDiv.classList.remove('hidden');
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            passwordErrorDiv.textContent = currentTranslations['password_mismatch_error'] || "Passwords do not match.";
-            passwordErrorDiv.classList.remove('hidden');
-            return;
-        }
-
-        // Supabase call
-        const { error } = await sb.auth.updateUser({ password: newPassword });
-
-        if (error) {
-            passwordErrorDiv.textContent = error.message;
-            passwordErrorDiv.classList.remove('hidden');
-        } else {
-            passwordSuccessDiv.textContent = currentTranslations['password_updated_success'] || "Password updated successfully!";
-            passwordSuccessDiv.classList.remove('hidden');
-            // Clear fields after success
-            newPasswordInput.value = '';
-            confirmNewPasswordInput.value = '';
-            setTimeout(() => passwordSuccessDiv.classList.add('hidden'), 3000);
-        }
-    });
-}
+            const { error } = await sb.auth.updateUser({ password: newPassword });
+            if (error) {
+                passwordErrorDiv.textContent = error.message;
+                passwordErrorDiv.classList.remove('hidden');
+            } else {
+                passwordSuccessDiv.textContent = currentTranslations['password_updated_success'] || "Password updated successfully!";
+                passwordSuccessDiv.classList.remove('hidden');
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+                setTimeout(() => passwordSuccessDiv.classList.add('hidden'), 3000);
+            }
+        });
+    }
 
     // =================================================================================
     // 📝 PROJECTS VIEW LOGIC
     // =================================================================================
     function setupProjectsLogic(user) {
-        // Project DOM References
         const projectForm = document.getElementById('project-form');
         const projectFormTitle = document.getElementById('project-form-title');
         const projectIdInput = document.getElementById('project-id-input');
@@ -209,8 +197,6 @@
         const createEditProjectContainer = document.getElementById('create-edit-project-container');
         const projectsListView = document.getElementById('projects-list-view');
         const projectsListContainer = document.getElementById('projects-list-container');
-        
-        // AI Keyword Generator DOM references
         const fetchContentBtn = document.getElementById('project-fetch-content-btn');
         const analyzeTextBtn = document.getElementById('project-analyze-text-btn');
         const renderJsCheckbox = document.getElementById('project-render-js-checkbox');
@@ -222,7 +208,6 @@
 
         let projectKeywordsState = [];
 
-        // Project Helper Functions
         const renderProjectTags = () => {
             projectTagsContainer.innerHTML = '';
             projectKeywordsState.forEach(keyword => {
@@ -270,10 +255,8 @@
             renderProjectTags();
         };
 
-        // Pass the `editProject` function to the global scope so `loadProjects` can use it.
         window.outreachSuite.editProjectCallback = editProject;
 
-        // Project Event Listeners
         projectKeywordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addProjectKeyword(); } });
         projectAddKeywordBtn.addEventListener('click', addProjectKeyword);
         addProjectBtn.addEventListener('click', () => showProjectForm(true));
@@ -282,12 +265,10 @@
         fetchContentBtn.addEventListener('click', async () => {
             const url = normalizeUrl(projectUrlInput.value);
             if (!url) { alert('Please enter a project URL to analyze.'); return; }
-            
             projectKeywordLogContainerWrapper.classList.remove('hidden');
             projectKeywordLogContainer.innerHTML = '';
             fetchContentBtn.disabled = true;
             fetchContentBtn.innerHTML = `<div class="loader mx-auto"></div>`;
-
             try {
                 logToConsole(projectKeywordLogContainer, '[INFO] Fetching content from URL...');
                 const response = await fetch('/.netlify/functions/fetch-content', {
@@ -295,13 +276,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ projectUrl: url, render: renderJsCheckbox.checked })
                 });
-
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Failed to fetch content.');
-
                 extractedTextState = data.textContent;
                 logToConsole(projectKeywordLogContainer, `[SUCCESS] Content extracted successfully (${data.characters} characters). Ready to analyze.`);
-                
                 step1Div.classList.add('hidden');
                 step2Div.classList.remove('hidden');
                 fetchSuccessMsg.textContent = `Content extracted (${data.characters} chars). Ready for AI analysis.`;
@@ -317,10 +295,8 @@
 
         analyzeTextBtn.addEventListener('click', async () => {
             if (!extractedTextState) { alert('No content to analyze.'); return; }
-
             analyzeTextBtn.disabled = true;
             analyzeTextBtn.innerHTML = `<div class="loader mx-auto"></div>`;
-            
             try {
                 logToConsole(projectKeywordLogContainer, '[INFO] Sending content to Gemini for analysis...');
                 const response = await fetch('/.netlify/functions/analyze-text', {
@@ -328,16 +304,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ textContent: extractedTextState, domain: new URL(normalizeUrl(projectUrlInput.value)).hostname })
                 });
-
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Failed to analyze text.');
-                
                 logToConsole(projectKeywordLogContainer, `[SUCCESS] Gemini analysis complete!`);
-                
                 const combined = [...new Set([...projectKeywordsState, ...data.existingKeywords, ...data.opportunityKeywords])];
                 projectKeywordsState = combined;
                 renderProjectTags();
-                
                 step1Div.classList.remove('hidden');
                 step2Div.classList.add('hidden');
             } catch (e) {
@@ -354,9 +326,7 @@
             const url = normalizeUrl(projectUrlInput.value);
             const keywords = projectKeywordsState;
             const editingId = projectIdInput.value;
-            
             const projectData = { name, url, keywords };
-
             let error;
             if (editingId) {
                 const { error: updateError } = await sb.from('projects').update(projectData).eq('id', editingId);
@@ -366,7 +336,6 @@
                 const { error: insertError } = await sb.from('projects').insert(projectData);
                 error = insertError;
             }
-
             if (error) { alert('Error saving project: ' + error.message); }
             else {
                 showProjectForm(false);
@@ -387,7 +356,6 @@
     // 🛠️ HYBRID SCRAPER VIEW LOGIC
     // =================================================================================
     function setupHybridScraperLogic(user) {
-        // Hybrid Scraper DOM References
         const hs_urlInput = document.getElementById('hs-url-input');
         const hs_scrapeBtn = document.getElementById('hs-scrape-btn');
         const hs_languageSelect = document.getElementById('hs-language-select');
@@ -399,12 +367,10 @@
         const hs_promptLinks = document.getElementById('hs-prompt-links');
         const hs_deepScanBtn = document.getElementById('hs-deep-scan-btn');
 
-        // Initial language select setup
         const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
         Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
         hs_languageSelect.value = user.user_metadata?.language || 'en';
 
-        // Hybrid Scraper Helper Functions
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -432,7 +398,6 @@
         const hs_renderResults = (emails, socials) => {
             hs_resultsContainer.innerHTML = '';
             let resultsFound = false;
-
             if (emails.length > 0) {
                 resultsFound = true;
                 const container = document.createElement('div');
@@ -449,7 +414,6 @@
                 socials.forEach(link => grid.appendChild(hs_createResultCard(link, link, new URL(link).hostname.includes('linkedin') ? 'linkedin' : 'default')));
                 container.appendChild(grid); hs_resultsContainer.appendChild(container);
             }
-
             if (!resultsFound) {
                 hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg text-center text-slate-600"><p>The initial scan found no contact information.</p></div>`;
             }
@@ -477,35 +441,29 @@
         const hs_scrape = async () => {
             const urlToScrape = normalizeUrl(hs_urlInput.value);
             if (!urlToScrape) return;
-
             hs_scrapeBtn.disabled = true;
             hs_scrapeBtn.innerHTML = '<div class="loader"></div>';
             hs_resultsContainer.innerHTML = '';
             hs_logContainer.innerHTML = '';
             hs_logContainerWrapper.classList.remove('hidden');
             hs_promptContainer.classList.add('hidden');
-
             try {
                 logToConsole(hs_logContainer, `[INFO] Starting scrape for: ${urlToScrape}`);
                 let response = await fetch(`/.netlify/functions/scrape?url=${encodeURIComponent(urlToScrape)}`);
                 if (!response.ok) throw new Error(`Scraping failed with status ${response.status}`);
                 let html = await response.text();
-
                 let emails = html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi) || [];
                 let socials = html.match(/https?:\/\/(www\.)?(linkedin\.com|twitter\.com|facebook\.com|instagram\.com)\/[a-zA-Z0-9._\/-]+/gi) || [];
                 emails = [...new Set(emails.filter(e => !e.endsWith('.png') && !e.endsWith('.jpg')))];
                 socials = [...new Set(socials)];
-
                 logToConsole(hs_logContainer, `[SUCCESS] Initial scan found ${emails.length} emails and ${socials.length} social links.`);
                 if (emails.length > 0 || socials.length > 0) hs_renderResults(emails, socials);
-
                 if (emails.length === 0) {
                     logToConsole(hs_logContainer, `[WARN] No emails found on homepage. Looking for contact pages...`);
                     const links = Array.from(new Set(html.match(/href="([^"]+)"/g)
                         ?.map(match => match.slice(6, -1)).map(link => { try { return new URL(link, urlToScrape).href; } catch (e) { return null; } })
                         .filter(link => link && new URL(link).hostname === new URL(urlToScrape).hostname) ?? []
                     ));
-
                     logToConsole(hs_logContainer, `[INFO] Found ${links.length} internal links. Asking Gemini to select contact pages...`);
                     const triageResponse = await fetch(`/.netlify/functions/triage-links`, {
                         method: 'POST', 
@@ -513,9 +471,7 @@
                         body: JSON.stringify({ urls: links, language: hs_languageSelect.value })
                     });
                     const { selectedUrls, error } = await triageResponse.json();
-
                     if (error) throw new Error(`AI Triage Error: ${error}`);
-
                     if (selectedUrls && selectedUrls.length > 0) {
                         logToConsole(hs_logContainer, `[SUCCESS] Gemini suggested: ${selectedUrls.join(', ')}`);
                         hs_promptMessage.textContent = 'Deep Scan Recommended on these pages:';
@@ -544,13 +500,11 @@
     // 💜 AFFINITY OUTREACH VIEW LOGIC
     // =================================================================================
     function setupAffinityOutreachLogic(user) {
-        // Affinity Outreach DOM References
         const ao_keywordInput = document.getElementById('ao-keyword-input');
         const ao_addKeywordBtn = document.getElementById('ao-add-keyword-btn');
         const ao_clearKeywordsBtn = document.getElementById('ao-clear-keywords-btn');
         const ao_tagsContainer = document.getElementById('ao-tags-container');
         const ao_searchMediaBtn = document.getElementById('ao-search-media-btn');
-        const ao_resultsWrapper = document.getElementById('ao-results-wrapper');
         const ao_resultsHeader = document.getElementById('ao-results-header');
         const ao_resultsContainer = document.getElementById('ao-results-container');
         const ao_logContainerWrapper = document.getElementById('ao-log-container-wrapper');
@@ -561,7 +515,6 @@
 
         let ao_currentResults = [];
 
-        // Affinity Outreach Helper Functions
         const ao_renderTags = () => {
             ao_tagsContainer.innerHTML = '';
             ao_keywords.forEach(keyword => {
@@ -581,23 +534,33 @@
         };
 
         window.outreachSuite.ao_loadProjectKeywords = () => {
-            if (activeProject && activeProject.keywords && activeProject.keywords.length > 0) {
-                ao_keywords = [...new Set(activeProject.keywords)];
-            } else {
-                ao_keywords = [];
-            }
+            ao_keywords = (activeProject?.keywords?.length > 0) ? [...new Set(activeProject.keywords)] : [];
             ao_renderTags();
         };
 
         const ao_populateSelects = () => {
-            ao_searchTypeSelect.innerHTML = ''; ao_countrySelect.innerHTML = ''; ao_languageSelect.innerHTML = '';
-            const searchTypes = {'Top Authority': 'top_authority', 'Established': 'established', 'Rising Stars': 'rising_stars'};
+            ao_searchTypeSelect.innerHTML = ''; 
+            ao_countrySelect.innerHTML = ''; 
+            ao_languageSelect.innerHTML = '';
+            
+            const searchTypes = {
+                'search_type_top_authority': 'top_authority', 
+                'search_type_established': 'established', 
+                'search_type_rising_stars': 'rising_stars'
+            };
             const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar', 'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Germany': 'de', 'France': 'fr', 'Italy': 'it', 'Poland': 'pl' };
             const languages = {'English': 'en', 'Spanish': 'es', 'German': 'de', 'French': 'fr', 'Italian': 'it', 'Polish': 'pl'};
-            Object.entries(searchTypes).forEach(([name, code]) => ao_searchTypeSelect.add(new Option(name, code)));
+            
+            Object.entries(searchTypes).forEach(([key, value]) => {
+                const translatedName = currentTranslations[key] || key.replace('search_type_', '').replace(/_/g, ' ');
+                ao_searchTypeSelect.add(new Option(translatedName, value));
+            });
             Object.entries(countries).forEach(([name, code]) => ao_countrySelect.add(new Option(name, code)));
             Object.entries(languages).forEach(([name, code]) => ao_languageSelect.add(new Option(name, code)));
         };
+        // This makes the dropdowns re-translate when the language changes
+        document.body.addEventListener('languageChanged', ao_populateSelects);
+
 
         const startConsoleAnimation = () => {
             if (consoleInterval) clearInterval(consoleInterval);
@@ -605,7 +568,6 @@
             const thinkingElement = document.createElement('p');
             thinkingElement.id = 'thinking-animation';
             ao_logContainer.appendChild(thinkingElement);
-            
             consoleInterval = setInterval(() => {
                 dots = dots.length < 3 ? dots + '.' : '';
                 thinkingElement.innerHTML = `<span class="text-cyan-400">[INFO]</span> Working ${dots}`;
@@ -616,8 +578,7 @@
         const stopConsoleAnimation = () => {
             clearInterval(consoleInterval);
             consoleInterval = null;
-            const thinkingElement = document.getElementById('thinking-animation');
-            if (thinkingElement) thinkingElement.remove();
+            document.getElementById('thinking-animation')?.remove();
         };
 
         const ao_saveToProject = async (media) => {
@@ -647,7 +608,6 @@
                         <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${index}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
                     </div>
                 </div>`).join('');
-
             document.querySelectorAll('.ao-save-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const button = e.currentTarget;
@@ -663,7 +623,6 @@
             });
         };
 
-        // Initial setup and Event Listeners
         ao_populateSelects();
         ao_keywordInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ao_addKeyword(); } });
         ao_addKeywordBtn.addEventListener('click', ao_addKeyword);
@@ -672,9 +631,7 @@
         const countryLanguageMap = { 'es': 'es', 'mx': 'es', 'ar': 'es', 'co': 'es', 'cl': 'es', 'pe': 'es', 'us': 'en', 'uk': 'en', 'de': 'de', 'fr': 'fr', 'it': 'it', 'pl': 'pl' };
         ao_countrySelect.addEventListener('change', () => {
             const selectedCountry = ao_countrySelect.value;
-            if (countryLanguageMap[selectedCountry]) {
-                ao_languageSelect.value = countryLanguageMap[selectedCountry];
-            }
+            if (countryLanguageMap[selectedCountry]) ao_languageSelect.value = countryLanguageMap[selectedCountry];
         });
 
         document.getElementById('ao-export-btn').addEventListener('click', () => {
@@ -691,22 +648,18 @@
 
         ao_searchMediaBtn.addEventListener('click', async () => {
             if (ao_keywords.length === 0) { alert('Please add at least one keyword.'); return; }
-            
             ao_searchMediaBtn.disabled = true; ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
             ao_logContainerWrapper.classList.remove('hidden'); ao_logContainer.innerHTML = '';
             ao_resultsContainer.innerHTML = ''; ao_resultsHeader.classList.add('hidden');
             ao_currentResults = [];
             startConsoleAnimation();
-
             let allSearchesSucceeded = true;
             const country = ao_countrySelect.value;
             const language = ao_languageSelect.value;
             const searchType = ao_searchTypeSelect.value;
-            
             const promises = ao_keywords.map(kw =>
                 fetch(`/.netlify/functions/affinity-search?keyword=${encodeURIComponent(kw)}&country=${country}&language=${language}&searchType=${searchType}`)
             );
-            
             for (const promise of promises) {
                 try {
                     const response = await promise;
@@ -719,17 +672,14 @@
                     allSearchesSucceeded = false;
                 }
             }
-            
             stopConsoleAnimation();
             ao_currentResults = [...new Map(ao_currentResults.map(item => [item['url'], item])).values()];
             ao_currentResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
             ao_renderResults(ao_currentResults);
-
             const messageKey = allSearchesSucceeded ? 'search_success_message' : 'search_warn_message';
             const defaultMessage = allSearchesSucceeded ? "[SUCCESS] Search complete! Found {count} unique results. ✅" : "[WARN] Search finished, but some keywords failed. Found {count} results.";
             const message = (currentTranslations[messageKey] || defaultMessage).replace('{count}', ao_currentResults.length);
             logToConsole(ao_logContainer, message);
-
             ao_searchMediaBtn.disabled = false;
             ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
         });
@@ -750,7 +700,6 @@
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const closeMenuButton = document.getElementById('close-menu-button');
 
-        // --- VIEW & NAVIGATION HANDLING ---
         const toggleMenu = () => {
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
@@ -761,10 +710,8 @@
             const targetView = document.getElementById(viewId + '-view');
             if (targetView) { targetView.classList.remove('hidden'); }
             else { document.getElementById('home-view').classList.remove('hidden'); }
-            
             navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + viewId));
             window.scrollTo(0, 0);
-
             if (viewId === 'projects') {
                 document.getElementById('projects-list-view').classList.remove('hidden');
                 document.getElementById('create-edit-project-container').classList.add('hidden');
@@ -792,10 +739,15 @@
         navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
         viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
         
-        document.getElementById('lang-en')?.addEventListener('click', () => sb.auth.updateUser({ data: { language: 'en' } }));
-        document.getElementById('lang-es')?.addEventListener('click', () => sb.auth.updateUser({ data: { language: 'es' } }));
+        const handleLanguageChange = async (lang) => {
+            await sb.auth.updateUser({ data: { language: lang } });
+            await translatePage(lang);
+            // Dispatch a custom event to notify components that language has changed
+            document.body.dispatchEvent(new CustomEvent('languageChanged'));
+        };
 
-        // --- COORDINATOR FUNCTIONS ---
+        document.getElementById('lang-en')?.addEventListener('click', () => handleLanguageChange('en'));
+        document.getElementById('lang-es')?.addEventListener('click', () => handleLanguageChange('es'));
         
         const setActiveProject = (project) => {
             activeProject = project;
@@ -815,7 +767,6 @@
             const contentDiv = document.getElementById(`content-${projectId}`);
             if(!contentDiv) return;
             contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-slate-400">Loading details...</p></div>`;
-            
             const { data: project, error } = await sb.from('projects').select('keywords').eq('id', projectId).single();
             const { data: media, error: mediaError } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
 
@@ -824,20 +775,20 @@
                 return;
             }
             
-            let keywordsHtml = '<div><h5 class="font-bold mb-2">Keywords</h5><p class="text-sm text-slate-500">No keywords defined.</p></div>';
+            let keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><p class="text-sm text-slate-500">${currentTranslations['no_keywords_defined'] || 'No keywords defined.'}</p></div>`;
             if(project.keywords && project.keywords.length > 0) {
                 keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><div class="flex flex-wrap">${project.keywords.map(k => `<span class="bg-slate-200 text-slate-700 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k}</span>`).join('')}</div></div>`;
             }
             
-            let mediaHtml = '<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title">Saved Media</h5><p class="text-sm text-slate-500">No media saved yet.</p></div>';
+            let mediaHtml = `<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title"></h5><p class="text-sm text-slate-500">${currentTranslations['no_media_saved'] || 'No media saved yet.'}</p></div>`;
             if(media.length > 0) {
                 mediaHtml = `
                     <div>
-                        <div class="flex justify-between items-center mb-2 mt-4"><h5 class="font-bold" data-translate-key="saved_media_title">Saved Media</h5></div>
+                        <div class="flex justify-between items-center mb-2 mt-4"><h5 class="font-bold" data-translate-key="saved_media_title"></h5></div>
                         <div class="space-y-2">${media.map(m => `
                             <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
                                 <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
-                                <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}">Scrape Contact</button>
+                                <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}" data-translate-key="scrape_contact_btn"></button>
                             </div>`).join('')}</div>
                     </div>`;
             }
@@ -863,7 +814,6 @@
             const projectsListContainer = document.getElementById('projects-list-container');
             const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
             if (error) { alert('Error loading projects: ' + error.message); return; }
-
             projectsListContainer.innerHTML = '';
             if (projects.length === 0) {
                 projectsListContainer.innerHTML = `<div class="text-center py-10 px-6 bg-white rounded-xl shadow-sm"><p data-translate-key="no_projects" class="font-medium text-slate-500">${currentTranslations['no_projects'] || 'No projects found'}</p></div>`;
@@ -889,7 +839,6 @@
                         </div>
                         <div class="project-accordion-content" id="content-${project.id}"></div>`;
                     projectsListContainer.appendChild(projectCard);
-                    
                     projectCard.querySelector('.accordion-toggle').addEventListener('click', () => {
                         const content = projectCard.querySelector('.project-accordion-content');
                         const arrow = projectCard.querySelector('.accordion-arrow');
@@ -901,7 +850,6 @@
                     projectCard.querySelector('.edit-project-btn').addEventListener('click', () => window.outreachSuite.editProjectCallback(project));
                     projectCard.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
                 });
-
                 if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
                    setActiveProject(projects[0]);
                 } else {
@@ -911,16 +859,13 @@
             }
         };
 
-        // --- MODULE INITIALIZATION ---
         setupSettingsLogic(user);
         setupProjectsLogic(user);
         setupHybridScraperLogic(user);
         setupAffinityOutreachLogic(user);
 
-        // Initial view and data load
         const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
         window.showOutreachSuiteView(initialView);
-        // Load projects after setting up all modules to ensure callbacks are defined
         await window.outreachSuite.loadProjects(user);
     };
 
@@ -932,7 +877,6 @@
         if (session) {
             body.classList.remove('logged-out'); body.classList.add('logged-in');
             updateUserAvatar(user);
-            // Translate the page based on the logged-in user's preference.
             await translatePage(user.user_metadata?.language || 'en');
             if (!isAppInitialized) {
                 await initializeApp(user);
@@ -940,13 +884,11 @@
         } else {
             body.classList.remove('logged-in'); body.classList.add('logged-out');
             isAppInitialized = false; activeProject = null;
-            // Default to English on the login screen.
             await translatePage('en');
             activeProjectDisplay.innerHTML = '';
         }
     });
 
-    // This listener handles clicks outside the user dropdown to close it.
     document.addEventListener('click', (e) => {
         const menu = document.getElementById('user-dropdown-menu');
         if (menu && !menu.classList.contains('hidden') && !e.target.closest('#user-profile-container')) {
@@ -954,7 +896,6 @@
         }
     });
     
-    // Event listeners for the authentication form.
     const loginBtn = document.getElementById('login-btn');
     const signupBtn = document.getElementById('signup-btn');
     const authEmailInput = document.getElementById('auth-email');
@@ -983,68 +924,50 @@
     });
 
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
-
-    // --- START: Password Recovery Logic ---
     
-    // Get the new DOM elements for the forms
     const authFormContainer = document.getElementById('auth-form-container');
     const recoveryFormContainer = document.getElementById('recovery-form-container');
-    
     const forgotPasswordLink = document.getElementById('forgot-password-link');
     const backToLoginLink = document.getElementById('back-to-login-link');
     const sendRecoveryBtn = document.getElementById('send-recovery-btn');
     const recoveryEmailInput = document.getElementById('recovery-email');
 
-    // Show the recovery form when the "Forgot Password" link is clicked
     forgotPasswordLink.addEventListener('click', (e) => {
         e.preventDefault();
         authFormContainer.classList.add('hidden');
         recoveryFormContainer.classList.remove('hidden');
     });
 
-    // Go back to the login form
     backToLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         recoveryFormContainer.classList.add('hidden');
         authFormContainer.classList.remove('hidden');
     });
 
-    // Handle the password recovery submission
     sendRecoveryBtn.addEventListener('click', async () => {
         const email = recoveryEmailInput.value;
         if (!email) {
-            showAuthMessage("Please enter your email address.", "error"); // We can reuse the auth message box
+            showAuthMessage("Please enter your email address.", "error");
             return;
         }
-
-        // Disable button to prevent multiple clicks
         sendRecoveryBtn.disabled = true;
         sendRecoveryBtn.innerHTML = '<div class="loader mx-auto"></div>';
-
         try {
             const { error } = await sb.auth.resetPasswordForEmail(email, {
-                // IMPORTANT: You might need to configure this URL in your Supabase project settings.
                 redirectTo: window.location.origin, 
             });
-
             if (error) {
-                // Show the error in the main auth error box for consistency
                 showAuthMessage(error.message, 'error');
             } else {
-                // Show a generic success message to prevent email enumeration attacks
                 showAuthMessage("If an account exists for this email, a recovery link has been sent.", 'success');
-                // Hide the recovery form and show the main login form again after success
                 recoveryFormContainer.classList.add('hidden');
                 authFormContainer.classList.remove('hidden');
             }
         } catch (catchedError) {
              showAuthMessage(catchedError.message, 'error');
         } finally {
-            // Re-enable the button
             sendRecoveryBtn.disabled = false;
             sendRecoveryBtn.textContent = 'Send Recovery Link';
         }
     });
-
-    // --- END: Password Recovery Logic ---
 });
