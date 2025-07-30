@@ -1,5 +1,4 @@
-// This is the final, refactored, and English-commented app.js file.
-document.addEventListener('DOMContentLoaded', () => {
+// document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // 🚀 INITIALIZATION & GLOBAL STATE
     // =================================================================================
@@ -118,26 +117,79 @@ document.addEventListener('DOMContentLoaded', () => {
     // ⚙️ SETTINGS VIEW LOGIC
     // =================================================================================
     function setupSettingsLogic(user) {
-        const userFirstNameInput = document.getElementById('user-first-name');
-        const userLastNameInput = document.getElementById('user-last-name');
-        const saveSettingsBtn = document.getElementById('save-settings-btn');
-        const settingsSuccessDiv = document.getElementById('settings-success');
+    // DOM References for Profile Info
+    const userFirstNameInput = document.getElementById('user-first-name');
+    const userLastNameInput = document.getElementById('user-last-name');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+    const settingsSuccessDiv = document.getElementById('settings-success');
 
-        userFirstNameInput.value = user.user_metadata?.first_name || '';
-        userLastNameInput.value = user.user_metadata?.last_name || '';
+    // DOM References for Password Change
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmNewPasswordInput = document.getElementById('confirm-new-password');
+    const updatePasswordBtn = document.getElementById('update-password-btn');
+    const passwordSuccessDiv = document.getElementById('password-update-success');
+    const passwordErrorDiv = document.getElementById('password-update-error');
 
-        saveSettingsBtn.addEventListener('click', async () => {
-            settingsSuccessDiv.classList.add('hidden');
-            const { data, error } = await sb.auth.updateUser({ data: { first_name: userFirstNameInput.value, last_name: userLastNameInput.value } });
-            if (error) {
-                alert('Error: ' + error.message);
-            } else {
-                updateUserAvatar(data.user);
-                settingsSuccessDiv.textContent = currentTranslations['settings_saved_success'];
-                settingsSuccessDiv.classList.remove('hidden');
-            }
+    // Load initial profile data
+    userFirstNameInput.value = user.user_metadata?.first_name || '';
+    userLastNameInput.value = user.user_metadata?.last_name || '';
+
+    // Event Listener for saving profile information
+    saveSettingsBtn.addEventListener('click', async () => {
+        settingsSuccessDiv.classList.add('hidden');
+        const { data, error } = await sb.auth.updateUser({ 
+            data: { 
+                first_name: userFirstNameInput.value, 
+                last_name: userLastNameInput.value 
+            } 
         });
-    }
+
+        if (error) {
+            alert('Error: ' + error.message);
+        } else {
+            updateUserAvatar(data.user);
+            settingsSuccessDiv.textContent = currentTranslations['settings_saved_success'];
+            settingsSuccessDiv.classList.remove('hidden');
+            setTimeout(() => settingsSuccessDiv.classList.add('hidden'), 3000);
+        }
+    });
+
+    // Event Listener for updating password
+    updatePasswordBtn.addEventListener('click', async () => {
+        passwordSuccessDiv.classList.add('hidden');
+        passwordErrorDiv.classList.add('hidden');
+
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmNewPasswordInput.value;
+
+        // Validation
+        if (!newPassword || newPassword.length < 6) {
+            passwordErrorDiv.textContent = "Password must be at least 6 characters long.";
+            passwordErrorDiv.classList.remove('hidden');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            passwordErrorDiv.textContent = currentTranslations['password_mismatch_error'] || "Passwords do not match.";
+            passwordErrorDiv.classList.remove('hidden');
+            return;
+        }
+
+        // Supabase call
+        const { error } = await sb.auth.updateUser({ password: newPassword });
+
+        if (error) {
+            passwordErrorDiv.textContent = error.message;
+            passwordErrorDiv.classList.remove('hidden');
+        } else {
+            passwordSuccessDiv.textContent = currentTranslations['password_updated_success'] || "Password updated successfully!";
+            passwordSuccessDiv.classList.remove('hidden');
+            // Clear fields after success
+            newPasswordInput.value = '';
+            confirmNewPasswordInput.value = '';
+            setTimeout(() => passwordSuccessDiv.classList.add('hidden'), 3000);
+        }
+    });
+}
 
     // =================================================================================
     // 📝 PROJECTS VIEW LOGIC

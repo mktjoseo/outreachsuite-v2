@@ -80,4 +80,10 @@
   "search_success_message": "[SUCCESS] ¡Búsqueda completada! Se encontraron {count} resultados únicos. ✅",
   "search_warn_message": "[WARN] Búsqueda finalizada, pero algunas palabras clave fallaron. Se encontraron {count} resultados de las búsquedas exitosas.",
   "hybrid_scraper_lang_explainer": "Selecciona el idioma del sitio web de destino para mejorar la precisión al encontrar páginas de contacto."
+  "change_password_title": "Cambiar Contraseña",
+  "new_password_label": "Nueva Contraseña",
+  "confirm_password_label": "Confirmar Nueva Contraseña",
+  "update_password_btn": "Actualizar Contraseña",
+  "password_mismatch_error": "Las contraseñas no coinciden.",
+  "password_updated_success": "¡Contraseña actualizada correctamente!"
 }

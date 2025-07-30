@@ -270,26 +270,49 @@
                 </div>
 
                 <div id="settings-view" class="view hidden">
-                    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="settings_title">Settings</h1>
-                    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="settings_subtitle">Manage your preferences and API keys.</p>
-                    <div class="max-w-2xl mx-auto space-y-8">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="profile_settings_title">Profile Information</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label for="user-first-name" data-translate-key="first_name_label">First Name</label><input type="text" id="user-first-name" class="w-full p-2 mt-1 border rounded-lg"></div>
-                                <div><label for="user-last-name" data-translate-key="last_name_label">Last Name</label><input type="text" id="user-last-name" class="w-full p-2 mt-1 border rounded-lg"></div>
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                             <h3 class="text-xl font-bold text-slate-800" data-translate-key="api_keys_title">API Keys</h3>
-                             <p class="text-slate-500 text-sm mt-1 mb-4" data-translate-key="api_keys_subtitle">This feature will be enabled in a future update.</p>
-                             <div class="space-y-4">
-                                <div><label class="font-medium text-slate-600">Gemini API Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
-                                <div><label class="font-medium text-slate-600">ScraperAPI Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
-                             </div>
-                        </div>
-                        <div id="settings-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg"></div>
-                        <button id="save-settings-btn" class="w-full bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="save_settings_btn">Save Settings</button>
+    <h1 class="text-4xl font-bold text-slate-800" data-translate-key="settings_title">Settings</h1>
+    <p class="text-lg text-slate-500 mt-2 mb-8" data-translate-key="settings_subtitle">Manage your preferences and API keys.</p>
+    <div class="max-w-2xl mx-auto space-y-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="profile_settings_title">Profile Information</h3>
+            <div id="settings-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg mb-4"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label for="user-first-name" data-translate-key="first_name_label">First Name</label><input type="text" id="user-first-name" class="w-full p-2 mt-1 border rounded-lg"></div>
+                <div><label for="user-last-name" data-translate-key="last_name_label">Last Name</label><input type="text" id="user-last-name" class="w-full p-2 mt-1 border rounded-lg"></div>
+            </div>
+             <div class="mt-4 flex justify-end">
+                <button id="save-settings-btn" class="bg-[#BF103C] text-white font-bold py-2 px-4 rounded-lg" data-translate-key="save_settings_btn">Save Settings</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-xl font-bold text-slate-800 mb-4" data-translate-key="change_password_title">Change Password</h3>
+            <div id="password-update-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg mb-4"></div>
+            <div id="password-update-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4"></div>
+            <div class="space-y-4">
+                <div>
+                    <label for="new-password" class="block text-sm font-medium" data-translate-key="new_password_label">New Password</label>
+                    <input type="password" id="new-password" class="w-full p-2 mt-1 border rounded-lg" placeholder="••••••••">
+                </div>
+                 <div>
+                    <label for="confirm-new-password" class="block text-sm font-medium" data-translate-key="confirm_password_label">Confirm New Password</label>
+                    <input type="password" id="confirm-new-password" class="w-full p-2 mt-1 border rounded-lg" placeholder="••••••••">
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="update-password-btn" class="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg" data-translate-key="update_password_btn">Update Password</button>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 opacity-50">
+             <h3 class="text-xl font-bold text-slate-800" data-translate-key="api_keys_title">API Keys</h3>
+             <p class="text-slate-500 text-sm mt-1 mb-4" data-translate-key="api_keys_subtitle">This feature will be enabled in a future update.</p>
+             <div class="space-y-4">
+                <div><label class="font-medium text-slate-600">Gemini API Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
+                <div><label class="font-medium text-slate-600">ScraperAPI Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
+             </div>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
             </main>

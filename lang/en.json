@@ -80,4 +80,10 @@
   "search_success_message": "[SUCCESS] Search complete! Found {count} unique results. ✅",
   "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches.",
   "hybrid_scraper_lang_explainer": "Select the target website's language to improve the accuracy of finding contact pages."
+  "change_password_title": "Change Password",
+  "new_password_label": "New Password",
+  "confirm_password_label": "Confirm New Password",
+  "update_password_btn": "Update Password",
+  "password_mismatch_error": "Passwords do not match.",
+  "password_updated_success": "Password updated successfully!"
 }
