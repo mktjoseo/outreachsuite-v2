@@ -1,6 +1,6 @@
 {
-  "name": "hybrid-scraper",
- "version": "1.0.0",
+  "name": "outreachsuite-functions",
+  "version": "1.0.0",
   "description": "Serverless functions for OutreachSuite",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "author": "Eduardo Bortolotti L.",
   "license": "ISC",
   "dependencies": {
-    "node-fetch": "^2.6.7"
+    "@supabase/supabase-js": "^2.43.4",
+    "node-fetch": "^2.7.0"
   }
 }
