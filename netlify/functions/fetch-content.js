@@ -1,6 +1,10 @@
 // Archivo: netlify/functions/fetch-content.js
 const fetch = require('node-fetch');
+const { checkUsage } = require('./usage-helper');
+const { createClient } = require('@supabase/supabase-js');
+
 const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 function cleanAndTruncateHtml(html, maxLength = 25000) {
     if (!html) return '';
@@ -19,7 +23,17 @@ exports.handler = async function(event) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Server error: SCRAPER_API_KEY is not configured.' }) };
     }
     
+    // --- Autenticación y Control de Cuota ---
+    const { authorization } = event.headers;
+    if (!authorization) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+    const token = authorization.split(' ')[1];
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+
     try {
+        await checkUsage(user);
+
+        // --- Lógica Original de la Función ---
         const { projectUrl, render } = JSON.parse(event.body);
         if (!projectUrl) {
             return { statusCode: 400, body: JSON.stringify({ error: 'No projectUrl provided.' }) };
@@ -48,6 +62,9 @@ exports.handler = async function(event) {
         };
 
     } catch (error) {
+        if (error.message === 'QUOTA_EXCEEDED') {
+            return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
+        }
         return { 
             statusCode: 500, 
             body: JSON.stringify({ error: error.message }) 

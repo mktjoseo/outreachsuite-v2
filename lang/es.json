@@ -93,4 +93,5 @@
   "search_success_message": "[SUCCESS] ¡Búsqueda completada! Se encontraron {count} resultados únicos. ✅",
   "search_warn_message": "[WARN] Búsqueda finalizada, pero algunas palabras clave fallaron. Se encontraron {count} resultados de las búsquedas exitosas.",
   "hybrid_scraper_lang_explainer": "Selecciona el idioma del sitio web de destino para mejorar la precisión al encontrar páginas de contacto."
+  "quota_exceeded_alert": "Has alcanzado tu límite de uso mensual. Esta función volverá a estar disponible el próximo mes."
 }
