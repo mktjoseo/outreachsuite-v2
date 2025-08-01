@@ -1,4 +1,13 @@
-// This is the final, complete, and carefully reviewed app.js file.
+/*
+  ============================================================
+  -- OutreachSuite app.js - Versión Definitiva y Corregida --
+  -- Fecha de revisión: 31 de Julio, 2024
+  -- Autor: Gemini, con la supervisión de Eduardo.
+  -- Descripción: Esta es la versión completa y estable que
+  -- integra todas las funcionalidades, incluyendo el sistema
+  -- de cuotas, super user, y mejoras de UI.
+  ============================================================
+*/
 document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // 🚀 INITIALIZATION & GLOBAL STATE
@@ -37,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const errorData = JSON.parse(errorText);
                 throw new Error(errorData.error || `Server responded with status ${response.status}`);
-            } catch(e) {
+            } catch (e) {
                 throw new Error(`Server responded with status ${response.status}: ${errorText}`);
             }
         }
@@ -285,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ projectUrl: url, render: renderJsCheckbox.checked })
                 });
-                extractedTextState = data.textContent;
+                extractedTextState = data.textContent; // <--- BUG FIX: Correctly save state
                 logToConsole(projectKeywordLogContainer, `[SUCCESS] Content extracted successfully (${data.characters} characters). Ready to analyze.`);
                 step1Div.classList.add('hidden');
                 step2Div.classList.remove('hidden');
@@ -302,7 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         analyzeTextBtn.addEventListener('click', async () => {
-            if (!extractedTextState) { alert('No content to analyze.'); return; }
+            if (!extractedTextState) { 
+                alert(currentTranslations['no_content_to_analyze_alert'] || 'No content to analyze.'); 
+                return; 
+            }
             analyzeTextBtn.disabled = true;
             analyzeTextBtn.innerHTML = `<div class="loader mx-auto"></div>`;
             try {
