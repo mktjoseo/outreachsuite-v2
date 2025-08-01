@@ -4,19 +4,12 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// La función ahora recibe el objeto 'user' completo, no solo el ID
 async function checkUsage(user) {
-    // --- INICIO: NUEVO BLOQUE DE SUPER USER ---
-    // Si el usuario tiene los metadatos y 'is_super_user' es true, saltamos toda la verificación.
     if (user.user_metadata && user.user_metadata.is_super_user === true) {
-        // Opcional: deja un rastro en los logs de Netlify para saber que se saltó la verificación.
         console.log(`Super user detected: ${user.email}. Skipping usage check.`);
         return { success: true };
     }
-    // --- FIN: NUEVO BLOQUE DE SUPER USER ---
 
-
-    // El resto de la lógica de cuota para usuarios normales sigue igual...
     const { data: config, error: configError } = await supabase
         .from('app_config')
         .select('config_value')

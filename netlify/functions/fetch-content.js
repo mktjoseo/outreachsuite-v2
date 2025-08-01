@@ -1,4 +1,3 @@
-// Archivo: netlify/functions/fetch-content.js
 const fetch = require('node-fetch');
 const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
@@ -31,7 +30,6 @@ exports.handler = async function(event) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Server error: SCRAPER_API_KEY is not configured.' }) };
     }
     
-    // --- Autenticación y Control de Cuota ---
     const { authorization } = event.headers;
     if (!authorization) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     const token = authorization.split(' ')[1];
@@ -41,7 +39,6 @@ exports.handler = async function(event) {
     try {
         await checkUsage(user);
 
-        // --- Lógica Original de la Función ---
         const { projectUrl, render } = JSON.parse(event.body);
         if (!projectUrl) {
             return { statusCode: 400, body: JSON.stringify({ error: 'No projectUrl provided.' }) };
@@ -73,9 +70,6 @@ exports.handler = async function(event) {
         if (error.message === 'QUOTA_EXCEEDED') {
             return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
         }
-        return { 
-            statusCode: 500, 
-            body: JSON.stringify({ error: error.message }) 
-        };
+        return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
     }
 };

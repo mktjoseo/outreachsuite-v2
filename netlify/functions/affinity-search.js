@@ -1,15 +1,10 @@
-// Archivo: netlify/functions/affinity-search.js version testeo
 const fetch = require('node-fetch');
-// La siguiente línea está comentada para la prueba
-// const { checkUsage } = require('./usage-helper');
-// La siguiente línea está comentada para la prueba
-// const { createClient } = require('@supabase/supabase-js');
+const { checkUsage } = require('./usage-helper');
+const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
 
-/*
-// El bloque de inicialización de Supabase está comentado para la prueba
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY,
@@ -19,30 +14,22 @@ const supabase = createClient(
     },
   }
 );
-*/
 
 exports.handler = async function(event) {
-    // La verificación de claves de API se mantiene
     if (!GEMINI_API_KEY || !SERPER_API_KEY) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Server error: One or more API keys are not configured.' }) };
     }
     
-    /*
-    // Todo el bloque de autenticación está comentado para la prueba
     const { authorization } = event.headers;
     if (!authorization) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     const token = authorization.split(' ')[1];
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
-    */
-   
-    // Mantenemos el try/catch para manejar errores de la lógica principal
+
     const diagnosticsLog = [];
     try {
-        // La llamada a checkUsage debe permanecer comentada
-        // await checkUsage(user);
+        await checkUsage(user);
 
-        // --- Lógica Original de la Función ---
         const { keyword, country, language, searchType } = event.queryStringParameters;
         if (!keyword || !country || !language || !searchType) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Error: Missing required parameters.' }) };
@@ -72,7 +59,6 @@ exports.handler = async function(event) {
         }
         
         diagnosticsLog.push(`[SUCCESS] Found ${organicResults.length} potential sites for "${keyword}". Preparing for analysis...`);
-        
         const sitesToAnalyze = organicResults.map(res => ({ title: res.title, url: res.link, snippet: res.snippet }));
 
         const prompt = `
@@ -83,14 +69,8 @@ exports.handler = async function(event) {
             - "description": Based on the title and snippet, write a one-sentence summary of the site's main purpose.
             - "reason": In one sentence, explain why this site could be a relevant match for the keyword "${keyword}".
             - "relevanceScore": An integer from 1 to 10 indicating how relevant the site is to the keyword. A news aggregator or a generic site should have a low score (1-4). A specialized blog directly on the topic should have a high score (7-10).
-            - "category": Classify the site into one of the following three English categories: "Major Authority" (for massive sites like Wikipedia), "Specialist Media" (for blogs, magazines, or sites highly focused on the keyword's topic), or "Other" (for sites that don't fit the other categories).
-
-            CRITICAL RULE: Your final output must only contain content-based websites, blogs, and digital magazines suitable for link building. Actively exclude results from:
-            - Social media domains (linkedin.com, facebook.com, twitter.com, instagram.com, etc.).
-            - Forums and community sites (reddit.com, quora.com, etc.).
-            - Government domains (any URL ending in .gov).
-            - User-generated content platforms like YouTube.
-
+            - "category": Classify the site into one of the following three English categories: "Major Authority", "Specialist Media", or "Other".
+            CRITICAL RULE: Your final output must only contain content-based websites, blogs, and digital magazines suitable for link building. Actively exclude results from social media, forums, government domains, and user-generated content platforms.
             Analyze the following list of sites:
             ${JSON.stringify(sitesToAnalyze, null, 2)}
         `;
@@ -99,7 +79,6 @@ exports.handler = async function(event) {
         const geminiPayload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
         
         diagnosticsLog.push(`[INFO] Sending list of ${sitesToAnalyze.length} sites to Gemini for batch analysis...`);
-
         const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
         const geminiResponse = await fetch(geminiApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(geminiPayload) });
 
@@ -113,7 +92,13 @@ exports.handler = async function(event) {
         const analyzedResults = parsedResult.analyzedResults || [];
 
         diagnosticsLog.push(`[SUCCESS] Analysis complete for "${keyword}". Found ${analyzedResults.length} valid media outlets.`);
-        
         return { statusCode: 200, body: JSON.stringify({ directResults: analyzedResults, log: diagnosticsLog }) };
 
-    } catch
+    } catch (error) {
+        if (error.message === 'QUOTA_EXCEEDED') {
+            return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
+        }
+        diagnosticsLog.push(`[FATAL ERROR] ${error.message}`);
+        return { statusCode: 500, body: JSON.stringify({ error: error.message, log: diagnosticsLog }) };
+    }
+};

@@ -1,4 +1,3 @@
-// Archivo: netlify/functions/scrape.js
 const fetch = require('node-fetch');
 const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
@@ -13,12 +12,12 @@ const supabase = createClient(
     },
   }
 );
+
 exports.handler = async function(event) {
     if (!SCRAPER_API_KEY) {
         return { statusCode: 500, body: 'Server function error: SCRAPER_API_KEY is not configured.' };
     }
 
-    // --- Autenticación y Control de Cuota ---
     const { authorization } = event.headers;
     if (!authorization) return { statusCode: 401, body: 'Unauthorized' };
     const token = authorization.split(' ')[1];
@@ -28,7 +27,6 @@ exports.handler = async function(event) {
     try {
         await checkUsage(user);
         
-        // --- Lógica Original de la Función ---
         const urlToScrape = event.queryStringParameters.url;
         if (!urlToScrape) {
             return { statusCode: 400, body: 'Error: URL parameter is missing.' };

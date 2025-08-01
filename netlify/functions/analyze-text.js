@@ -1,4 +1,3 @@
-// Archivo: netlify/functions/analyze-text.js
 const fetch = require('node-fetch');
 const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
@@ -13,6 +12,7 @@ const supabase = createClient(
     },
   }
 );
+
 exports.handler = async function(event) {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
@@ -21,7 +21,6 @@ exports.handler = async function(event) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Server error: GEMINI_API_KEY is not configured.' }) };
     }
 
-    // --- Autenticación y Control de Cuota ---
     const { authorization } = event.headers;
     if (!authorization) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     const token = authorization.split(' ')[1];
@@ -31,7 +30,6 @@ exports.handler = async function(event) {
     try {
         await checkUsage(user);
         
-        // --- Lógica Original de la Función ---
         const { textContent, domain } = JSON.parse(event.body);
         if (!textContent) {
             return { statusCode: 400, body: JSON.stringify({ error: 'No textContent provided.' }) };
@@ -83,14 +81,8 @@ exports.handler = async function(event) {
 
     } catch (error) {
         if (error.message === 'QUOTA_EXCEEDED') {
-            return {
-                statusCode: 429,
-                body: JSON.stringify({ error: 'Monthly quota exceeded.' })
-            };
+            return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
         }
-        return { 
-            statusCode: 500, 
-            body: JSON.stringify({ error: error.message }) 
-        };
+        return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
     }
 };
