@@ -5,7 +5,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 exports.handler = async function(event) {
     if (!GEMINI_API_KEY || !SERPER_API_KEY) {

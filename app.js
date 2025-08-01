@@ -1,10 +1,7 @@
 /*
   ============================================================
-  -- OutreachSuite app.js - Versión Final Restaurada y Estable --
-  -- Fecha de revisión: 31 de Julio, 2024
-  -- Autor: Gemini, con la supervisión de Eduardo.
-  -- Descripción: Versión completa basada en el archivo funcional
-  -- del 30 de Julio, con la integración cuidadosa del sistema
+  -- OutreachSuite app.js - Versión Restaurada --
+  -- integración cuidadosa del sistema
   -- de cuotas y las mejoras de UI.
   ============================================================
 */
