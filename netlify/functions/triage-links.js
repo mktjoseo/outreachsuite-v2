@@ -1,17 +1,9 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY,
-  {
-    global: {
-      fetch: fetch,
-    },
-  }
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 exports.handler = async function(event) {
     if (event.httpMethod !== 'POST') {
@@ -56,25 +48,16 @@ exports.handler = async function(event) {
         const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errorDetail = await response.text();
-            throw new Error(`Gemini API Error: ${errorDetail}`);
-        }
-
-        const data = await response.json();
-        const resultText = data.candidates[0].content.parts[0].text;
-        return { statusCode: 200, body: resultText };
+        const response = await axios.post(apiUrl, payload, { headers: { 'Content-Type': 'application/json' } });
+        
+        // Gemini ya devuelve un string JSON válido, así que lo pasamos directamente
+        return { statusCode: 200, body: response.data.candidates[0].content.parts[0].text };
         
     } catch (error) {
+        const errorMessage = error.response ? `API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}` : error.message;
         if (error.message === 'QUOTA_EXCEEDED') {
             return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
         }
-        return { statusCode: 500, body: JSON.stringify({ error: `Server function error: ${error.message}` }) };
+        return { statusCode: 500, body: JSON.stringify({ error: `Server function error: ${errorMessage}` }) };
     }
 };

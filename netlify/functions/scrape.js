@@ -1,17 +1,9 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
 
 const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY,
-  {
-    global: {
-      fetch: fetch,
-    },
-  }
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 exports.handler = async function(event) {
     if (!SCRAPER_API_KEY) {
@@ -38,15 +30,13 @@ exports.handler = async function(event) {
             apiUrl += '&render=true';
         }
         
-        const response = await fetch(apiUrl);
-        const data = await response.text();
-
-        if (!response.ok) {
-            return { statusCode: response.status, body: data };
-        }
-        return { statusCode: 200, body: data };
+        const response = await axios.get(apiUrl);
+        return { statusCode: 200, body: response.data };
 
     } catch (error) {
+        if (error.response) {
+            return { statusCode: error.response.status, body: error.response.data };
+        }
         if (error.message === 'QUOTA_EXCEEDED') {
             return { statusCode: 429, body: 'Monthly quota exceeded.' };
         }

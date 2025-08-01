@@ -1,19 +1,10 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY,
-  {
-    global: {
-      fetch: fetch,
-    },
-  }
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 exports.handler = async function(event) {
     if (!GEMINI_API_KEY || !SERPER_API_KEY) {
@@ -40,18 +31,12 @@ exports.handler = async function(event) {
         if (searchType === 'rising_stars') page = 4; 
 
         diagnosticsLog.push(`[INFO] Searching on Google for keyword: "${keyword}"...`);
-        const serperResponse = await fetch('https://google.serper.dev/search', {
-            method: 'POST',
-            headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ q: keyword, gl: country.toLowerCase(), hl: language.toLowerCase(), page: page, num: 10 })
-        });
-
-        if (!serperResponse.ok) {
-            throw new Error(`Serper API failed with status ${serperResponse.status}`);
-        }
-
-        const serperData = await serperResponse.json();
-        const organicResults = serperData.organic || [];
+        
+        const serperResponse = await axios.post('https://google.serper.dev/search', 
+            { q: keyword, gl: country.toLowerCase(), hl: language.toLowerCase(), page: page, num: 10 },
+            { headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' } }
+        );
+        const organicResults = serperResponse.data.organic || [];
         
         if (organicResults.length === 0) {
             diagnosticsLog.push(`[WARN] No potential sites found via Google for "${keyword}".`);
@@ -69,8 +54,14 @@ exports.handler = async function(event) {
             - "description": Based on the title and snippet, write a one-sentence summary of the site's main purpose.
             - "reason": In one sentence, explain why this site could be a relevant match for the keyword "${keyword}".
             - "relevanceScore": An integer from 1 to 10 indicating how relevant the site is to the keyword. A news aggregator or a generic site should have a low score (1-4). A specialized blog directly on the topic should have a high score (7-10).
-            - "category": Classify the site into one of the following three English categories: "Major Authority", "Specialist Media", or "Other".
-            CRITICAL RULE: Your final output must only contain content-based websites, blogs, and digital magazines suitable for link building. Actively exclude results from social media, forums, government domains, and user-generated content platforms.
+            - "category": Classify the site into one of the following three English categories: "Major Authority" (for massive sites like Wikipedia), "Specialist Media" (for blogs, magazines, or sites highly focused on the keyword's topic), or "Other" (for sites that don't fit the other categories).
+
+            CRITICAL RULE: Your final output must only contain content-based websites, blogs, and digital magazines suitable for link building. Actively exclude results from:
+            - Social media domains (linkedin.com, facebook.com, twitter.com, instagram.com, etc.).
+            - Forums and community sites (reddit.com, quora.com, etc.).
+            - Government domains (any URL ending in .gov).
+            - User-generated content platforms like YouTube.
+
             Analyze the following list of sites:
             ${JSON.stringify(sitesToAnalyze, null, 2)}
         `;
@@ -80,25 +71,21 @@ exports.handler = async function(event) {
         
         diagnosticsLog.push(`[INFO] Sending list of ${sitesToAnalyze.length} sites to Gemini for batch analysis...`);
         const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
-        const geminiResponse = await fetch(geminiApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(geminiPayload) });
+        
+        const geminiResponse = await axios.post(geminiApiUrl, geminiPayload, { headers: { 'Content-Type': 'application/json' } });
+        const parsedResult = JSON.parse(geminiResponse.data.candidates[0].content.parts[0].text);
 
-        if (!geminiResponse.ok) {
-            const errorBody = await geminiResponse.text();
-            throw new Error(`Gemini API failed with status ${geminiResponse.status}: ${errorBody}`);
-        }
-
-        const geminiData = await geminiResponse.json();
-        const parsedResult = JSON.parse(geminiData.candidates[0].content.parts[0].text);
         const analyzedResults = parsedResult.analyzedResults || [];
-
         diagnosticsLog.push(`[SUCCESS] Analysis complete for "${keyword}". Found ${analyzedResults.length} valid media outlets.`);
         return { statusCode: 200, body: JSON.stringify({ directResults: analyzedResults, log: diagnosticsLog }) };
 
     } catch (error) {
+        const errorMessage = error.response ? `API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}` : error.message;
+        diagnosticsLog.push(`[FATAL ERROR] ${errorMessage}`);
+
         if (error.message === 'QUOTA_EXCEEDED') {
             return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
         }
-        diagnosticsLog.push(`[FATAL ERROR] ${error.message}`);
-        return { statusCode: 500, body: JSON.stringify({ error: error.message, log: diagnosticsLog }) };
+        return { statusCode: 500, body: JSON.stringify({ error: errorMessage, log: diagnosticsLog }) };
     }
 };
