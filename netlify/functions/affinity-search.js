@@ -1,10 +1,15 @@
-// Archivo: netlify/functions/affinity-search.js
+// Archivo: netlify/functions/affinity-search.js version testeo
 const fetch = require('node-fetch');
-const { checkUsage } = require('./usage-helper');
-const { createClient } = require('@supabase/supabase-js');
+// La siguiente línea está comentada para la prueba
+// const { checkUsage } = require('./usage-helper');
+// La siguiente línea está comentada para la prueba
+// const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
+
+/*
+// El bloque de inicialización de Supabase está comentado para la prueba
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY,
@@ -14,23 +19,28 @@ const supabase = createClient(
     },
   }
 );
+*/
 
 exports.handler = async function(event) {
+    // La verificación de claves de API se mantiene
     if (!GEMINI_API_KEY || !SERPER_API_KEY) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Server error: One or more API keys are not configured.' }) };
     }
     
-    // --- Autenticación y Control de Cuota ---
+    /*
+    // Todo el bloque de autenticación está comentado para la prueba
     const { authorization } = event.headers;
     if (!authorization) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     const token = authorization.split(' ')[1];
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
-
+    */
+   
+    // Mantenemos el try/catch para manejar errores de la lógica principal
     const diagnosticsLog = [];
-
     try {
-        await checkUsage(user);
+        // La llamada a checkUsage debe permanecer comentada
+        // await checkUsage(user);
 
         // --- Lógica Original de la Función ---
         const { keyword, country, language, searchType } = event.queryStringParameters;
@@ -106,11 +116,4 @@ exports.handler = async function(event) {
         
         return { statusCode: 200, body: JSON.stringify({ directResults: analyzedResults, log: diagnosticsLog }) };
 
-    } catch (error) {
-        if (error.message === 'QUOTA_EXCEEDED') {
-            return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
-        }
-        diagnosticsLog.push(`[FATAL ERROR] ${error.message}`);
-        return { statusCode: 500, body: JSON.stringify({ error: error.message, log: diagnosticsLog }) };
-    }
-};
+    } catch
