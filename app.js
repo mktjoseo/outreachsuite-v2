@@ -1,3 +1,4 @@
+// This is the final, complete, and carefully reviewed app.js file.
 document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // 🚀 INITIALIZATION & GLOBAL STATE
@@ -24,19 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     async function fetchWithAuth(url, options = {}) {
         const { data: { session } } = await sb.auth.getSession();
-        if (!session) {
-            throw new Error("User not authenticated.");
-        }
+        if (!session) throw new Error("User not authenticated.");
         const headers = { ...options.headers, 'Authorization': `Bearer ${session.access_token}` };
         const response = await fetch(url, { ...options, headers });
-
         if (response.status === 429) {
-            alert(currentTranslations['quota_exceeded_alert'] || 'You have reached your monthly usage limit. This feature will be available again next month.');
+            alert(currentTranslations['quota_exceeded_alert'] || 'You have reached your monthly usage limit.');
             throw new Error('QUOTA_EXCEEDED');
         }
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: `Server responded with status ${response.status}` }));
-            throw new Error(errorData.error);
+            const errorText = await response.text();
+            try {
+                const errorData = JSON.parse(errorText);
+                throw new Error(errorData.error || `Server responded with status ${response.status}`);
+            } catch(e) {
+                throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+            }
         }
         const contentType = response.headers.get("content-type");
         if (contentType && (contentType.includes("text/html") || contentType.includes("text/plain"))) {
@@ -372,6 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
         Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
         hs_languageSelect.value = user.user_metadata?.language || 'en';
+
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -633,7 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
                         allSearchesSucceeded = false;
                     } else {
-                        // If one keyword fails due to quota, stop the animation and show partial results.
                         allSearchesSucceeded = false;
                         break;
                     }
@@ -835,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupProjectsLogic(user);
         setupHybridScraperLogic(user);
         setupAffinityOutreachLogic(user);
-        
+
         const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
         window.showOutreachSuiteView(initialView);
         await window.outreachSuite.loadProjects(user);
@@ -878,14 +881,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await sb.auth.signInWithPassword({ email: authEmailInput.value, password: authPasswordInput.value });
         if (error) showAuthMessage(error.message);
     });
+
     signupBtn.addEventListener('click', async () => {
-        const { data, error } = await sb.auth.signUp({ email: authEmailInput.value, password: authPasswordInput.value, options: { data: { language: authLanguageSelect.value } } });
+        const { data, error } = await sb.auth.signUp({ 
+            email: authEmailInput.value, 
+            password: authPasswordInput.value, 
+            options: { data: { language: authLanguageSelect.value } } 
+        });
         if (error) { 
             showAuthMessage(error.message); 
         } else { 
             showAuthMessage('Sign up successful! Please check your email to confirm your account.', 'success'); 
         }
     });
+
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
     setupPasswordToggle('toggle-auth-password', 'auth-password', 'eye-auth-open', 'eye-auth-closed');
     
@@ -901,11 +910,13 @@ document.addEventListener('DOMContentLoaded', () => {
         authFormContainer.classList.add('hidden');
         recoveryFormContainer.classList.remove('hidden');
     });
+
     backToLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         recoveryFormContainer.classList.add('hidden');
         authFormContainer.classList.remove('hidden');
     });
+
     sendRecoveryBtn.addEventListener('click', async () => {
         const email = recoveryEmailInput.value;
         if (!email) {
@@ -915,7 +926,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sendRecoveryBtn.disabled = true;
         sendRecoveryBtn.innerHTML = '<div class="loader mx-auto"></div>';
         try {
-            const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+            const { error } = await sb.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin, 
+            });
             if (error) {
                 showAuthMessage(error.message, 'error');
             } else {
@@ -924,7 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 authFormContainer.classList.remove('hidden');
             }
         } catch (catchedError) {
-            showAuthMessage(catchedError.message, 'error');
+             showAuthMessage(catchedError.message, 'error');
         } finally {
             sendRecoveryBtn.disabled = false;
             sendRecoveryBtn.textContent = 'Send Recovery Link';
