@@ -27,29 +27,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!session) {
             throw new Error("User not authenticated.");
         }
-
-        const headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${session.access_token}`
-        };
-
+        const headers = { ...options.headers, 'Authorization': `Bearer ${session.access_token}` };
         const response = await fetch(url, { ...options, headers });
 
-        if (response.status === 429) { // Quota Exceeded
+        if (response.status === 429) {
             alert(currentTranslations['quota_exceeded_alert'] || 'You have reached your monthly usage limit. This feature will be available again next month.');
             throw new Error('QUOTA_EXCEEDED');
         }
-
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Server responded with status ${response.status}`);
+            const errorData = await response.json().catch(() => ({ error: `Server responded with status ${response.status}` }));
+            throw new Error(errorData.error);
         }
-
         const contentType = response.headers.get("content-type");
         if (contentType && (contentType.includes("text/html") || contentType.includes("text/plain"))) {
             return response.text();
         }
-
         return response.json();
     }
 
@@ -106,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateUserAvatar = (user) => {
         let initials = (user.email?.substring(0, 2) || '??').toUpperCase();
         const meta = user.user_metadata;
-        if (meta?.first_name && meta?.last_name) {
+        if (meta?.first_name && meta?.last_name && meta.first_name.length > 0 && meta.last_name.length > 0) {
             initials = (meta.first_name[0] + meta.last_name[0]).toUpperCase();
         }
         userProfileContainer.innerHTML = `
@@ -127,13 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     };
-
+    
     function setupPasswordToggle(toggleButtonId, passwordInputId, openEyeId, closedEyeId) {
         const toggleButton = document.getElementById(toggleButtonId);
         const passwordInput = document.getElementById(passwordInputId);
         const eyeOpen = document.getElementById(openEyeId);
         const eyeClosed = document.getElementById(closedEyeId);
-
         if (toggleButton && passwordInput && eyeOpen && eyeClosed) {
             toggleButton.addEventListener('click', () => {
                 const isPassword = passwordInput.type === 'password';
@@ -199,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => passwordSuccessDiv.classList.add('hidden'), 3000);
             }
         });
-
         setupPasswordToggle('toggle-new-password', 'new-password', 'eye-new-open', 'eye-new-closed');
         setupPasswordToggle('toggle-confirm-password', 'confirm-new-password', 'eye-confirm-open', 'eye-confirm-closed');
     }
@@ -365,6 +355,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // =================================================================================
+    // 🛠️ HYBRID SCRAPER VIEW LOGIC
+    // =================================================================================
     function setupHybridScraperLogic(user) {
         const hs_urlInput = document.getElementById('hs-url-input');
         const hs_scrapeBtn = document.getElementById('hs-scrape-btn');
@@ -379,7 +372,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
         Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
         hs_languageSelect.value = user.user_metadata?.language || 'en';
-
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -640,6 +632,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (e.message !== 'QUOTA_EXCEEDED') {
                         logToConsole(ao_logContainer, `[FATAL] A keyword search failed. ${e.message}`);
                         allSearchesSucceeded = false;
+                    } else {
+                        // If one keyword fails due to quota, stop the animation and show partial results.
+                        allSearchesSucceeded = false;
+                        break;
                     }
                 }
             }
@@ -662,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async (user) => {
         if (isAppInitialized) return;
         isAppInitialized = true;
+        
         const views = document.querySelectorAll('.view');
         const navLinks = document.querySelectorAll('.sidebar-link');
         const viewSwitchers = document.querySelectorAll('.view-switcher');
@@ -669,18 +666,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlay = document.getElementById('sidebar-overlay');
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const closeMenuButton = document.getElementById('close-menu-button');
+
         const toggleMenu = () => {
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         };
+
         window.showOutreachSuiteView = (viewId) => {
             views.forEach(view => view.classList.add('hidden'));
             const targetView = document.getElementById(viewId + '-view');
-            if (targetView) { targetView.classList.remove('hidden'); }
-            else { document.getElementById('home-view').classList.remove('hidden'); }
+            if (targetView) {
+                targetView.classList.remove('hidden');
+            } else {
+                document.getElementById('home-view').classList.remove('hidden');
+            }
             navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + viewId));
             window.scrollTo(0, 0);
-            if (viewId === 'projects') {
+
+            if (viewId === 'projects' && window.outreachSuite.loadProjects) {
                 document.getElementById('projects-list-view').classList.remove('hidden');
                 document.getElementById('create-edit-project-container').classList.add('hidden');
                 window.outreachSuite.loadProjects(user);
@@ -689,15 +692,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.outreachSuite.ao_loadProjectKeywords();
             }
         };
+
         const handleLinkClick = (e) => {
             e.preventDefault();
             const viewId = e.currentTarget.getAttribute('href').substring(1);
             window.location.hash = viewId;
         };
+
         window.addEventListener('hashchange', () => {
             const viewId = window.location.hash ? window.location.hash.substring(1) : 'home';
             window.showOutreachSuiteView(viewId);
         });
+
         mobileMenuButton.addEventListener('click', toggleMenu);
         closeMenuButton.addEventListener('click', toggleMenu);
         overlay.addEventListener('click', toggleMenu);
@@ -728,20 +734,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.outreachSuite.ao_loadProjectKeywords();
             }
         };
+        
         const loadProjectDetails = async (projectId) => {
             const contentDiv = document.getElementById(`content-${projectId}`);
             if(!contentDiv) return;
             contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-slate-400">Loading details...</p></div>`;
             const { data: project, error } = await sb.from('projects').select('keywords').eq('id', projectId).single();
             const { data: media, error: mediaError } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
+
             if (error || mediaError) {
                 contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-red-500">Error loading details.</p></div>`;
                 return;
             }
+            
             let keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><p class="text-sm text-slate-500">${currentTranslations['no_keywords_defined'] || 'No keywords defined.'}</p></div>`;
             if(project.keywords && project.keywords.length > 0) {
                 keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><div class="flex flex-wrap">${project.keywords.map(k => `<span class="bg-slate-200 text-slate-700 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k}</span>`).join('')}</div></div>`;
             }
+            
             let mediaHtml = `<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title"></h5><p class="text-sm text-slate-500">${currentTranslations['no_media_saved'] || 'No media saved yet.'}</p></div>`;
             if(media.length > 0) {
                 mediaHtml = `
@@ -754,10 +764,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>`).join('')}</div>
                     </div>`;
             }
+            
             contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}${mediaHtml}</div>`;
             contentDiv.dataset.loaded = 'true';
             translatePage(user.user_metadata?.language || 'en');
         };
+
         const deleteProject = async (projectId) => {
             if (confirm('Are you sure you want to delete this project and all its saved media? This action cannot be undone.')) {
                 await sb.from('saved_media').delete().eq('project_id', projectId);
@@ -769,6 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         };
+
         window.outreachSuite.loadProjects = async (user) => {
             const projectsListContainer = document.getElementById('projects-list-container');
             const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
@@ -817,10 +830,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         };
+
         setupSettingsLogic(user);
         setupProjectsLogic(user);
         setupHybridScraperLogic(user);
         setupAffinityOutreachLogic(user);
+        
         const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
         window.showOutreachSuiteView(initialView);
         await window.outreachSuite.loadProjects(user);
@@ -845,17 +860,20 @@ document.addEventListener('DOMContentLoaded', () => {
             activeProjectDisplay.innerHTML = '';
         }
     });
+
     document.addEventListener('click', (e) => {
         const menu = document.getElementById('user-dropdown-menu');
         if (menu && !menu.classList.contains('hidden') && !e.target.closest('#user-profile-container')) {
             menu.classList.add('hidden');
         }
     });
+    
     const loginBtn = document.getElementById('login-btn');
     const signupBtn = document.getElementById('signup-btn');
     const authEmailInput = document.getElementById('auth-email');
     const authPasswordInput = document.getElementById('auth-password');
     const authLanguageSelect = document.getElementById('auth-language');
+
     loginBtn.addEventListener('click', async () => {
         const { error } = await sb.auth.signInWithPassword({ email: authEmailInput.value, password: authPasswordInput.value });
         if (error) showAuthMessage(error.message);
@@ -864,20 +882,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data, error } = await sb.auth.signUp({ email: authEmailInput.value, password: authPasswordInput.value, options: { data: { language: authLanguageSelect.value } } });
         if (error) { 
             showAuthMessage(error.message); 
-        } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-            showAuthMessage("Signup successful, but there might be an issue. Please try logging in.", "success");
         } else { 
             showAuthMessage('Sign up successful! Please check your email to confirm your account.', 'success'); 
         }
     });
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
     setupPasswordToggle('toggle-auth-password', 'auth-password', 'eye-auth-open', 'eye-auth-closed');
+    
     const authFormContainer = document.getElementById('auth-form-container');
     const recoveryFormContainer = document.getElementById('recovery-form-container');
     const forgotPasswordLink = document.getElementById('forgot-password-link');
     const backToLoginLink = document.getElementById('back-to-login-link');
     const sendRecoveryBtn = document.getElementById('send-recovery-btn');
     const recoveryEmailInput = document.getElementById('recovery-email');
+
     forgotPasswordLink.addEventListener('click', (e) => {
         e.preventDefault();
         authFormContainer.classList.add('hidden');
@@ -906,7 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 authFormContainer.classList.remove('hidden');
             }
         } catch (catchedError) {
-             showAuthMessage(catchedError.message, 'error');
+            showAuthMessage(catchedError.message, 'error');
         } finally {
             sendRecoveryBtn.disabled = false;
             sendRecoveryBtn.textContent = 'Send Recovery Link';

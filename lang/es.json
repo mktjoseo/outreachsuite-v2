@@ -90,8 +90,9 @@
   "scrape_contact_btn": "Extraer Contacto",
   "no_keywords_defined": "No hay palabras clave definidas.",
   "no_media_saved": "No hay medios guardados todavía.",
-  "search_success_message": "[SUCCESS] ¡Búsqueda completada! Se encontraron {count} resultados únicos. ✅",
-  "search_warn_message": "[WARN] Búsqueda finalizada, pero algunas palabras clave fallaron. Se encontraron {count} resultados de las búsquedas exitosas.",
-  "hybrid_scraper_lang_explainer": "Selecciona el idioma del sitio web de destino para mejorar la precisión al encontrar páginas de contacto."
-  "quota_exceeded_alert": "Has alcanzado tu límite de uso mensual. Esta función volverá a estar disponible el próximo mes."
+  "search_success_message": "[SUCCESS] Search complete! Found {count} unique results. ✅",
+  "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches.",
+  "hybrid_scraper_lang_explainer": "Selecciona el idioma del sitio web de destino para mejorar la precisión al encontrar páginas de contacto.",
+  "quota_exceeded_alert": "Has alcanzado tu límite de uso mensual. Esta función volverá a estar disponible el próximo mes.",
+  "active_project": "Proyecto Activo:"
 }

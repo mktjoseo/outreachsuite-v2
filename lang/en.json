@@ -92,6 +92,7 @@
   "no_media_saved": "No media saved yet.",
   "search_success_message": "[SUCCESS] Search complete! Found {count} unique results. ✅",
   "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches.",
-  "hybrid_scraper_lang_explainer": "Select the target website's language to improve the accuracy of finding contact pages."
-  "quota_exceeded_alert": "You have reached your monthly usage limit. This feature will be available again next month."
+  "hybrid_scraper_lang_explainer": "Select the target website's language to improve the accuracy of finding contact pages.",
+  "quota_exceeded_alert": "You have reached your monthly usage limit. This feature will be available again next month.",
+  "active_project": "Active Project:"
 }
