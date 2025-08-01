@@ -26,7 +26,15 @@
                 </div>
                 <form id="auth-form" class="space-y-4">
                     <input type="email" id="auth-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
-                    <input type="password" id="auth-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                    
+                    <div class="relative">
+                        <input type="password" id="auth-password" placeholder="Password (min. 6 characters)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BF103C]">
+                        <button type="button" id="toggle-auth-password" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <svg id="eye-auth-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                            <svg id="eye-auth-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M10 4.5c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 14c-3.309 0-6-2.691-6-6s2.691-6 6-6 6 2.691 6 6-2.691 6-6 6zm-1-11h2v2h-2v-2zm0 4h2v6h-2v-6z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.523l8.367 8.367zm1.414-1.414L6.523 5.11a6 6 0 018.367 8.367zM3 10a8 8 0 1114 5.43V10a8 8 0 01-14 0z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+
                     <select id="auth-language" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
                         <option value="en">English</option>
                         <option value="es">Español</option>
@@ -292,11 +300,23 @@
                             <div class="space-y-4">
                                 <div>
                                     <label for="new-password" class="block text-sm font-medium" data-translate-key="new_password_label">New Password</label>
-                                    <input type="password" id="new-password" class="w-full p-2 mt-1 border rounded-lg" placeholder="••••••••">
+                                    <div class="relative">
+                                        <input type="password" id="new-password" class="w-full p-2 mt-1 border rounded-lg" placeholder="••••••••">
+                                        <button type="button" id="toggle-new-password" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
+                                            <svg id="eye-new-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                                            <svg id="eye-new-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M10 4.5c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 14c-3.309 0-6-2.691-6-6s2.691-6 6-6 6 2.691 6 6-2.691 6-6 6zm-1-11h2v2h-2v-2zm0 4h2v6h-2v-6z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.523l8.367 8.367zm1.414-1.414L6.523 5.11a6 6 0 018.367 8.367zM3 10a8 8 0 1114 5.43V10a8 8 0 01-14 0z" clip-rule="evenodd" /></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                  <div>
                                     <label for="confirm-new-password" class="block text-sm font-medium" data-translate-key="confirm_password_label">Confirm New Password</label>
-                                    <input type="password" id="confirm-new-password" class="w-full p-2 mt-1 border rounded-lg" placeholder="••••••••">
+                                    <div class="relative">
+                                        <input type="password" id="confirm-new-password" class="w-full p-2 mt-1 border rounded-lg" placeholder="••••••••">
+                                        <button type="button" id="toggle-confirm-password" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
+                                            <svg id="eye-confirm-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                                            <svg id="eye-confirm-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M10 4.5c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 14c-3.309 0-6-2.691-6-6s2.691-6 6-6 6 2.691 6 6-2.691 6-6 6zm-1-11h2v2h-2v-2zm0 4h2v6h-2v-6z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.523l8.367 8.367zm1.414-1.414L6.523 5.11a6 6 0 018.367 8.367zM3 10a8 8 0 1114 5.43V10a8 8 0 01-14 0z" clip-rule="evenodd" /></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mt-4 flex justify-end">
@@ -309,6 +329,7 @@
                              <p class="text-slate-500 text-sm mt-1 mb-4" data-translate-key="api_keys_subtitle">This feature will be enabled in a future update.</p>
                              <div class="space-y-4">
                                 <div><label class="font-medium text-slate-600">Gemini API Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
+                                <div><label class="font-medium text-slate-600">Serper API Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
                                 <div><label class="font-medium text-slate-600">ScraperAPI Key</label><input type="password" disabled class="w-full p-2 mt-1 border rounded-lg bg-slate-100"></div>
                              </div>
                         </div>

@@ -1,4 +1,3 @@
-// This is the final, complete, and carefully reviewed app.js file.
 document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // 🚀 INITIALIZATION & GLOBAL STATE
@@ -21,11 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.outreachSuite = {};
 
     // =================================================================================
-    // 🛠️ CENTRALIZED API FETCHER & UTILITY FUNCTIONS
+    // 🛠️ UTILITY & GLOBAL UI FUNCTIONS
     // =================================================================================
-
-    // This new function handles all calls to our Netlify backend.
-    // It automatically adds the user's auth token and handles quota errors.
     async function fetchWithAuth(url, options = {}) {
         const { data: { session } } = await sb.auth.getSession();
         if (!session) {
@@ -49,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error(errorData.error || `Server responded with status ${response.status}`);
         }
 
-        // For scrape.js which can return plain text
         const contentType = response.headers.get("content-type");
         if (contentType && (contentType.includes("text/html") || contentType.includes("text/plain"))) {
             return response.text();
@@ -60,19 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const logToConsole = (container, message) => {
         if (!container) return;
-        const formatted = message.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>')
-                               .replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>')
-                               .replace(/WARN/g, '<span class="text-yellow-400">WARN</span>')
-                               .replace(/FATAL/g, '<span class="text-red-400">FATAL</span>');
+        const formatted = message.replace(/\[/g, '<span class="text-cyan-400">[').replace(/\]/g, ']</span>').replace(/SUCCESS/g, '<span class="text-green-400">SUCCESS</span>').replace(/WARN/g, '<span class="text-yellow-400">WARN</span>').replace(/FATAL/g, '<span class="text-red-400">FATAL</span>');
         container.innerHTML += `<p>${formatted}</p>`;
         container.scrollTop = container.scrollHeight;
     };
 
     const normalizeUrl = (url) => {
         let n = url ? url.trim() : '';
-        if (!/^(https?:\/\/)/i.test(n) && n) {
-            n = 'https://' + n;
-        }
+        if (!/^(https?:\/\/)/i.test(n) && n) n = 'https://' + n;
         return n;
     };
 
@@ -91,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.title = translations['app_title'] || 'OutreachSuite';
             const tooltip = document.getElementById('ao-search-type-tooltip');
-            if(tooltip) tooltip.innerHTML = translations['search_type_tooltip_content'] || '';
+            if (tooltip) tooltip.innerHTML = translations['search_type_tooltip_content'] || '';
             const langEnBtn = document.getElementById('lang-en');
             const langEsBtn = document.getElementById('lang-es');
             if (langEnBtn && langEsBtn) {
@@ -116,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateUserAvatar = (user) => {
         let initials = (user.email?.substring(0, 2) || '??').toUpperCase();
         const meta = user.user_metadata;
-        if (meta?.first_name && meta?.last_name && meta.first_name.length > 0 && meta.last_name.length > 0) {
+        if (meta?.first_name && meta?.last_name) {
             initials = (meta.first_name[0] + meta.last_name[0]).toUpperCase();
         }
         userProfileContainer.innerHTML = `
@@ -138,64 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // All other functions from here down have been reviewed and are correct.
-    // They now use the new `fetchWithAuth` function for API calls.
+    function setupPasswordToggle(toggleButtonId, passwordInputId, openEyeId, closedEyeId) {
+        const toggleButton = document.getElementById(toggleButtonId);
+        const passwordInput = document.getElementById(passwordInputId);
+        const eyeOpen = document.getElementById(openEyeId);
+        const eyeClosed = document.getElementById(closedEyeId);
+
+        if (toggleButton && passwordInput && eyeOpen && eyeClosed) {
+            toggleButton.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                eyeOpen.classList.toggle('hidden', isPassword);
+                eyeClosed.classList.toggle('hidden', !isPassword);
+            });
+        }
+    }
 
     // =================================================================================
     // ⚙️ SETTINGS VIEW LOGIC
     // =================================================================================
-    function setupSettingsLogic(user) {
-        // ... (This function remains unchanged from the last version)
-    }
-
-    // =================================================================================
-    // 📝 PROJECTS VIEW LOGIC
-    // =================================================================================
-    function setupProjectsLogic(user) {
-        // ... (Code from previous step)
-        fetchContentBtn.addEventListener('click', async () => {
-            // ... (Code from previous step)
-            try {
-                logToConsole(projectKeywordLogContainer, '[INFO] Fetching content from URL...');
-                const data = await fetchWithAuth('/.netlify/functions/fetch-content', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ projectUrl: url, render: renderJsCheckbox.checked })
-                });
-                // ... (rest of the logic)
-            } catch (e) {
-                if (e.message !== 'QUOTA_EXCEEDED') {
-                    logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
-                }
-                // ... (rest of the logic)
-            } finally {
-                // ... (rest of the logic)
-            }
-        });
-        analyzeTextBtn.addEventListener('click', async () => {
-            // ... (Code from previous step)
-            try {
-                logToConsole(projectKeywordLogContainer, '[INFO] Sending content to Gemini for analysis...');
-                const data = await fetchWithAuth('/.netlify/functions/analyze-text', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ textContent: extractedTextState, domain: new URL(normalizeUrl(projectUrlInput.value)).hostname })
-                });
-                // ... (rest of the logic)
-            } catch (e) {
-                if (e.message !== 'QUOTA_EXCEEDED') {
-                    logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
-                }
-            } finally {
-                // ... (rest of the logic)
-            }
-        });
-        // ... (The rest of the Projects Logic function)
-    }
-    
-    // ... (The rest of the file is the same as the one you have)
-    // ... I will now provide the full complete file without omissions.
-    
     function setupSettingsLogic(user) {
         const userFirstNameInput = document.getElementById('user-first-name');
         const userLastNameInput = document.getElementById('user-last-name');
@@ -248,8 +199,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => passwordSuccessDiv.classList.add('hidden'), 3000);
             }
         });
+
+        setupPasswordToggle('toggle-new-password', 'new-password', 'eye-new-open', 'eye-new-closed');
+        setupPasswordToggle('toggle-confirm-password', 'confirm-new-password', 'eye-confirm-open', 'eye-confirm-closed');
     }
 
+    // =================================================================================
+    // 📝 PROJECTS VIEW LOGIC
+    // =================================================================================
     function setupProjectsLogic(user) {
         const projectForm = document.getElementById('project-form');
         const projectFormTitle = document.getElementById('project-form-title');
@@ -554,7 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ao_countrySelect = document.getElementById('ao-country');
         const ao_languageSelect = document.getElementById('ao-language');
         let ao_currentResults = [];
-
         const ao_renderTags = () => {
             ao_tagsContainer.innerHTML = '';
             ao_keywords.forEach(keyword => {
@@ -747,13 +703,18 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.addEventListener('click', toggleMenu);
         navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
         viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
+        
         const handleLanguageChange = async (lang) => {
-            await sb.auth.updateUser({ data: { language: lang } });
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                await sb.auth.updateUser({ data: { language: lang } });
+            }
             await translatePage(lang);
             document.body.dispatchEvent(new CustomEvent('languageChanged'));
         };
         document.getElementById('lang-en')?.addEventListener('click', () => handleLanguageChange('en'));
         document.getElementById('lang-es')?.addEventListener('click', () => handleLanguageChange('es'));
+        
         const setActiveProject = (project) => {
             activeProject = project;
             activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
@@ -910,6 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     authLanguageSelect.addEventListener('change', (e) => translatePage(e.target.value));
+    setupPasswordToggle('toggle-auth-password', 'auth-password', 'eye-auth-open', 'eye-auth-closed');
     const authFormContainer = document.getElementById('auth-form-container');
     const recoveryFormContainer = document.getElementById('recovery-form-container');
     const forgotPasswordLink = document.getElementById('forgot-password-link');
