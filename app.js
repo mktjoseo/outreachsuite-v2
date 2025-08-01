@@ -302,7 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         analyzeTextBtn.addEventListener('click', async () => {
-            if (!extractedTextState) { alert('No content to analyze.'); return; }
+            if (!extractedTextState) { 
+                alert(currentTranslations['no_content_to_analyze_alert'] || 'No content to analyze.'); 
+                return; 
+            }
             analyzeTextBtn.disabled = true;
             analyzeTextBtn.innerHTML = `<div class="loader mx-auto"></div>`;
             try {
@@ -375,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
         Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
         hs_languageSelect.value = user.user_metadata?.language || 'en';
-
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -944,3 +946,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+}
