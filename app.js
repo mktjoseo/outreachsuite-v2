@@ -1,11 +1,11 @@
 /*
   ============================================================
-  -- OutreachSuite app.js - Versión Definitiva y Corregida --
+  -- OutreachSuite app.js - Versión Final Restaurada y Estable --
   -- Fecha de revisión: 31 de Julio, 2024
   -- Autor: Gemini, con la supervisión de Eduardo.
-  -- Descripción: Esta es la versión completa y estable que
-  -- integra todas las funcionalidades, incluyendo el sistema
-  -- de cuotas, super user, y mejoras de UI.
+  -- Descripción: Versión completa basada en el archivo funcional
+  -- del 30 de Julio, con la integración cuidadosa del sistema
+  -- de cuotas y las mejoras de UI.
   ============================================================
 */
 document.addEventListener('DOMContentLoaded', () => {
@@ -148,22 +148,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =================================================================================
-    // ⚙️ SETTINGS VIEW LOGIC
+    // 🚀 MAIN APP CONTROLLER
     // =================================================================================
-    function setupSettingsLogic(user) {
+    const initializeApp = async (user) => {
+        if (isAppInitialized) return;
+        isAppInitialized = true;
+
+        // --- GLOBAL UI & NAVIGATION ---
+        const views = document.querySelectorAll('.view');
+        const navLinks = document.querySelectorAll('.sidebar-link');
+        const viewSwitchers = document.querySelectorAll('.view-switcher');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+        const toggleMenu = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
+        const showView = (viewId) => {
+            views.forEach(view => view.classList.add('hidden'));
+            const targetView = document.getElementById(viewId + '-view');
+            if (targetView) {
+                targetView.classList.remove('hidden');
+            } else {
+                document.getElementById('home-view').classList.remove('hidden');
+            }
+            navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + viewId));
+            window.scrollTo(0, 0);
+
+            if (viewId === 'projects') {
+                document.getElementById('projects-list-view').classList.remove('hidden');
+                document.getElementById('create-edit-project-container').classList.add('hidden');
+                loadProjects(user);
+            }
+            if (viewId === 'affinity-outreach' && window.outreachSuite.ao_loadProjectKeywords) {
+                window.outreachSuite.ao_loadProjectKeywords();
+            }
+        };
+        window.showOutreachSuiteView = showView;
+        const handleLinkClick = (e) => {
+            e.preventDefault();
+            const viewId = e.currentTarget.getAttribute('href').substring(1);
+            window.location.hash = viewId;
+        };
+        window.addEventListener('hashchange', () => {
+            const viewId = window.location.hash ? window.location.hash.substring(1) : 'home';
+            showView(viewId);
+        });
+        mobileMenuButton.addEventListener('click', toggleMenu);
+        closeMenuButton.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+        navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
+        viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
+        const handleLanguageChange = async (lang) => {
+            await sb.auth.updateUser({ data: { language: lang } });
+            await translatePage(lang);
+            document.body.dispatchEvent(new CustomEvent('languageChanged'));
+        };
+        document.getElementById('lang-en')?.addEventListener('click', () => handleLanguageChange('en'));
+        document.getElementById('lang-es')?.addEventListener('click', () => handleLanguageChange('es'));
+        
+        // --- SETTINGS LOGIC ---
         const userFirstNameInput = document.getElementById('user-first-name');
         const userLastNameInput = document.getElementById('user-last-name');
         const saveSettingsBtn = document.getElementById('save-settings-btn');
         const settingsSuccessDiv = document.getElementById('settings-success');
-        const newPasswordInput = document.getElementById('new-password');
-        const confirmNewPasswordInput = document.getElementById('confirm-new-password');
-        const updatePasswordBtn = document.getElementById('update-password-btn');
-        const passwordSuccessDiv = document.getElementById('password-update-success');
-        const passwordErrorDiv = document.getElementById('password-update-error');
-
         userFirstNameInput.value = user.user_metadata?.first_name || '';
         userLastNameInput.value = user.user_metadata?.last_name || '';
-
         saveSettingsBtn.addEventListener('click', async () => {
             settingsSuccessDiv.classList.add('hidden');
             const { data, error } = await sb.auth.updateUser({ data: { first_name: userFirstNameInput.value, last_name: userLastNameInput.value } });
@@ -176,6 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => settingsSuccessDiv.classList.add('hidden'), 3000);
             }
         });
+        const newPasswordInput = document.getElementById('new-password');
+        const confirmNewPasswordInput = document.getElementById('confirm-new-password');
+        const updatePasswordBtn = document.getElementById('update-password-btn');
+        const passwordSuccessDiv = document.getElementById('password-update-success');
+        const passwordErrorDiv = document.getElementById('password-update-error');
         updatePasswordBtn.addEventListener('click', async () => {
             passwordSuccessDiv.classList.add('hidden');
             passwordErrorDiv.classList.add('hidden');
@@ -204,12 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         setupPasswordToggle('toggle-new-password', 'new-password', 'eye-new-open', 'eye-new-closed');
         setupPasswordToggle('toggle-confirm-password', 'confirm-new-password', 'eye-confirm-open', 'eye-confirm-closed');
-    }
 
-    // =================================================================================
-    // 📝 PROJECTS VIEW LOGIC
-    // =================================================================================
-    function setupProjectsLogic(user) {
+        // --- PROJECTS LOGIC ---
         const projectForm = document.getElementById('project-form');
         const projectFormTitle = document.getElementById('project-form-title');
         const projectIdInput = document.getElementById('project-id-input');
@@ -219,10 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectAddKeywordBtn = document.getElementById('project-add-keyword-btn');
         const projectTagsContainer = document.getElementById('project-tags-container');
         const projectCancelBtn = document.getElementById('project-cancel-btn');
+        const projectsListContainer = document.getElementById('projects-list-container');
         const addProjectBtn = document.getElementById('add-project-btn');
         const createEditProjectContainer = document.getElementById('create-edit-project-container');
         const projectsListView = document.getElementById('projects-list-view');
-        const projectsListContainer = document.getElementById('projects-list-container');
         const fetchContentBtn = document.getElementById('project-fetch-content-btn');
         const analyzeTextBtn = document.getElementById('project-analyze-text-btn');
         const renderJsCheckbox = document.getElementById('project-render-js-checkbox');
@@ -232,7 +285,112 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectKeywordLogContainerWrapper = document.getElementById('project-keyword-log-container-wrapper');
         const projectKeywordLogContainer = document.getElementById('project-keyword-log-container');
         let projectKeywordsState = [];
-
+        const setActiveProject = (project) => {
+            activeProject = project;
+            activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.classList.remove('border-sky-500', 'bg-sky-50');
+                if (card.dataset.id == project.id) card.classList.add('border-sky-500', 'bg-sky-50');
+            });
+            if (window.outreachSuite.ao_loadProjectKeywords) window.outreachSuite.ao_loadProjectKeywords();
+        };
+        const loadProjectDetails = async (projectId) => {
+            const contentDiv = document.getElementById(`content-${projectId}`);
+            if (!contentDiv) return;
+            contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-slate-400">Loading details...</p></div>`;
+            const { data: project, error } = await sb.from('projects').select('keywords').eq('id', projectId).single();
+            const { data: media, error: mediaError } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
+            if (error || mediaError) {
+                contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-red-500">Error loading details.</p></div>`;
+                return;
+            }
+            let keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><p class="text-sm text-slate-500" data-translate-key="no_keywords_defined"></p></div>`;
+            if (project.keywords && project.keywords.length > 0) {
+                keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><div class="flex flex-wrap">${project.keywords.map(k => `<span class="bg-slate-200 text-slate-700 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k}</span>`).join('')}</div></div>`;
+            }
+            let mediaHtml = `<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title"></h5><p class="text-sm text-slate-500" data-translate-key="no_media_saved"></p></div>`;
+            if (media.length > 0) {
+                mediaHtml = `
+                    <div>
+                        <div class="flex justify-between items-center mb-2 mt-4"><h5 class="font-bold" data-translate-key="saved_media_title"></h5></div>
+                        <div class="space-y-2">${media.map(m => `
+                            <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
+                                <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
+                                <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}" data-translate-key="scrape_contact_btn"></button>
+                            </div>`).join('')}</div>
+                    </div>`;
+            }
+            contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}${mediaHtml}</div>`;
+            contentDiv.dataset.loaded = 'true';
+            translatePage(user.user_metadata?.language || 'en');
+        };
+        const deleteProject = async (projectId) => {
+            if (confirm('Are you sure you want to delete this project and all its saved media? This action cannot be undone.')) {
+                await sb.from('saved_media').delete().eq('project_id', projectId);
+                const { error } = await sb.from('projects').delete().eq('id', projectId);
+                if (error) {
+                    alert('Error deleting project: ' + error.message);
+                } else {
+                    if (activeProject && activeProject.id === projectId) {
+                        activeProject = null;
+                        activeProjectDisplay.innerHTML = '';
+                    }
+                    await loadProjects(user);
+                }
+            }
+        };
+        const loadProjects = async (user) => {
+            const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+            if (error) {
+                alert('Error loading projects: ' + error.message);
+                return;
+            }
+            projectsListContainer.innerHTML = '';
+            if (projects.length === 0) {
+                projectsListContainer.innerHTML = `<div class="text-center py-10 px-6 bg-white rounded-xl shadow-sm"><p data-translate-key="no_projects" class="font-medium text-slate-500"></p></div>`;
+                activeProject = null;
+                activeProjectDisplay.innerHTML = '';
+            } else {
+                projects.forEach(project => {
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'project-card bg-white rounded-xl shadow-sm border border-gray-200 transition-all';
+                    projectCard.dataset.id = project.id;
+                    projectCard.innerHTML = `
+                        <div class="project-accordion-header flex justify-between items-center p-4">
+                            <div class="accordion-toggle flex-grow cursor-pointer pr-4">
+                                <h4 class="font-bold text-lg text-slate-800">${project.name}</h4>
+                                <p class="text-sm text-slate-500">${project.url || 'No URL'}</p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                                <button class="select-project-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg hover:bg-sky-200" data-translate-key="select_project_btn">Set as Active</button>
+                                <button class="edit-project-btn text-slate-500 hover:text-sky-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5z"></path></svg></button>
+                                <button class="delete-project-btn text-slate-500 hover:text-red-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg></button>
+                                <svg class="accordion-arrow w-5 h-5 text-slate-500 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                            </div>
+                        </div>
+                        <div class="project-accordion-content" id="content-${project.id}"></div>`;
+                    projectsListContainer.appendChild(projectCard);
+                    projectCard.querySelector('.accordion-toggle').addEventListener('click', () => {
+                        const content = projectCard.querySelector('.project-accordion-content');
+                        const arrow = projectCard.querySelector('.accordion-arrow');
+                        content.classList.toggle('open');
+                        arrow.classList.toggle('open');
+                        if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } 
+                    });
+                    projectCard.querySelector('.select-project-btn').addEventListener('click', () => setActiveProject(project));
+                    projectCard.querySelector('.edit-project-btn').addEventListener('click', () => editProject(project));
+                    projectCard.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
+                });
+                if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
+                   setActiveProject(projects[0]);
+                } else {
+                   const updatedActiveProject = projects.find(p => p.id === activeProject.id);
+                   if (updatedActiveProject) setActiveProject(updatedActiveProject);
+                }
+            }
+            translatePage(user.user_metadata?.language || 'en');
+        };
+        window.outreachSuite.loadProjects = loadProjects;
         const renderProjectTags = () => {
             projectTagsContainer.innerHTML = '';
             projectKeywordsState.forEach(keyword => {
@@ -260,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
             projectIdInput.value = '';
             projectKeywordsState = [];
             renderProjectTags();
-            projectFormTitle.textContent = currentTranslations['create_edit_title_create'] || "Create a New Project";
+            projectFormTitle.textContent = currentTranslations['create_edit_title_create'];
             step1Div.classList.remove('hidden');
             step2Div.classList.add('hidden');
             extractedTextState = null;
@@ -268,21 +426,49 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const editProject = (project) => {
             showProjectForm(true);
-            projectFormTitle.textContent = `${currentTranslations['create_edit_title_edit'] || "Editing Project"}: ${project.name}`;
+            projectFormTitle.textContent = `${currentTranslations['create_edit_title_edit']}: ${project.name}`;
             projectIdInput.value = project.id;
             projectNameInput.value = project.name;
             projectUrlInput.value = project.url;
             projectKeywordsState = [...(project.keywords || [])];
             renderProjectTags();
         };
-        window.outreachSuite.editProjectCallback = editProject;
         projectKeywordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addProjectKeyword(); } });
         projectAddKeywordBtn.addEventListener('click', addProjectKeyword);
         addProjectBtn.addEventListener('click', () => showProjectForm(true));
         projectCancelBtn.addEventListener('click', () => showProjectForm(false));
+        projectForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = projectNameInput.value;
+            const url = normalizeUrl(projectUrlInput.value);
+            const keywords = projectKeywordsState;
+            const editingId = projectIdInput.value;
+            const projectData = { name, url, keywords, user_id: user.id };
+            let error;
+            if (editingId) {
+                const { error: updateError } = await sb.from('projects').update({ name, url, keywords }).eq('id', editingId);
+                error = updateError;
+            } else {
+                const { error: insertError } = await sb.from('projects').insert(projectData);
+                error = insertError;
+            }
+            if (error) {
+                alert('Error saving project: ' + error.message);
+            } else {
+                showProjectForm(false);
+                await loadProjects(user);
+            }
+        });
+        projectsListContainer.addEventListener('click', (e) => {
+            const scrapBtn = e.target.closest('.hs-scrap-contact-btn');
+            if (scrapBtn) {
+                document.getElementById('hs-url-input').value = scrapBtn.dataset.url;
+                showView('hybrid-scraper');
+            }
+        });
         fetchContentBtn.addEventListener('click', async () => {
             const url = normalizeUrl(projectUrlInput.value);
-            if (!url) { alert('Please enter a project URL to analyze.'); return; }
+            if (!url) { alert(currentTranslations['enter_project_url_alert']); return; }
             projectKeywordLogContainerWrapper.classList.remove('hidden');
             projectKeywordLogContainer.innerHTML = '';
             fetchContentBtn.disabled = true;
@@ -294,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ projectUrl: url, render: renderJsCheckbox.checked })
                 });
-                extractedTextState = data.textContent; // <--- BUG FIX: Correctly save state
+                extractedTextState = data.textContent;
                 logToConsole(projectKeywordLogContainer, `[SUCCESS] Content extracted successfully (${data.characters} characters). Ready to analyze.`);
                 step1Div.classList.add('hidden');
                 step2Div.classList.remove('hidden');
@@ -307,13 +493,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 step2Div.classList.add('hidden');
             } finally {
                 fetchContentBtn.disabled = false;
-                fetchContentBtn.innerHTML = currentTranslations['fetch_content_btn'] || 'Fetch Content';
+                fetchContentBtn.innerHTML = currentTranslations['fetch_content_btn'];
             }
         });
         analyzeTextBtn.addEventListener('click', async () => {
-            if (!extractedTextState) { 
-                alert(currentTranslations['no_content_to_analyze_alert'] || 'No content to analyze.'); 
-                return; 
+            if (!extractedTextState) {
+                alert(currentTranslations['no_content_to_analyze_alert']);
+                return;
             }
             analyzeTextBtn.disabled = true;
             analyzeTextBtn.innerHTML = `<div class="loader mx-auto"></div>`;
@@ -328,52 +514,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const combined = [...new Set([...projectKeywordsState, ...data.existingKeywords, ...data.opportunityKeywords])];
                 projectKeywordsState = combined;
                 renderProjectTags();
-                step1Div.classList.remove('hidden');
-                step2Div.classList.add('hidden');
             } catch (e) {
                 if (e.message !== 'QUOTA_EXCEEDED') {
                     logToConsole(projectKeywordLogContainer, `[FATAL] ${e.message}`);
                 }
             } finally {
                 analyzeTextBtn.disabled = false;
-                analyzeTextBtn.innerHTML = currentTranslations['analyze_text_btn'] || 'Analyze Text with AI';
+                analyzeTextBtn.innerHTML = currentTranslations['analyze_text_btn'];
+                step1Div.classList.remove('hidden');
+                step2Div.classList.add('hidden');
             }
         });
-        projectForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = projectNameInput.value;
-            const url = normalizeUrl(projectUrlInput.value);
-            const keywords = projectKeywordsState;
-            const editingId = projectIdInput.value;
-            const projectData = { name, url, keywords };
-            let error;
-            if (editingId) {
-                const { error: updateError } = await sb.from('projects').update(projectData).eq('id', editingId);
-                error = updateError;
-            } else {
-                projectData.user_id = user.id;
-                const { error: insertError } = await sb.from('projects').insert(projectData);
-                error = insertError;
-            }
-            if (error) { alert('Error saving project: ' + error.message); }
-            else {
-                showProjectForm(false);
-                await window.outreachSuite.loadProjects(user);
-            }
-        });
-        projectsListContainer.addEventListener('click', (e) => {
-            const scrapBtn = e.target.closest('.hs-scrap-contact-btn');
-            if (scrapBtn) {
-                document.getElementById('hs-url-input').value = scrapBtn.dataset.url;
-                window.location.hash = 'hybrid-scraper';
-            }
-        });
-    }
 
-    // =================================================================================
-    // 🛠️ HYBRID SCRAPER VIEW LOGIC
-    // =================================================================================
-    function setupHybridScraperLogic(user) {
+        // --- HYBRID SCRAPER LOGIC ---
         const hs_urlInput = document.getElementById('hs-url-input');
         const hs_scrapeBtn = document.getElementById('hs-scrape-btn');
         const hs_languageSelect = document.getElementById('hs-language-select');
@@ -387,7 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const scraperLanguages = {'English': 'en', 'Spanish': 'es', 'Polish': 'pl', 'Italian': 'it', 'German': 'de', 'French': 'fr'};
         Object.entries(scraperLanguages).forEach(([name, code]) => hs_languageSelect.add(new Option(name, code)));
         hs_languageSelect.value = user.user_metadata?.language || 'en';
-
         const hs_createResultCard = (text, linkUrl, type) => {
             const icons = {
                 email: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
@@ -429,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(grid); hs_resultsContainer.appendChild(container);
             }
             if (!resultsFound) {
-                hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg text-center text-slate-600"><p>The initial scan found no contact information.</p></div>`;
+                hs_resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg text-center text-slate-600"><p>No contact information found.</p></div>`;
             }
         };
         const hs_executeDeepScan = async (contactUrls, emails, socials) => {
@@ -454,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logToConsole(hs_logContainer, `[SUCCESS] Deep Scan finished. Total unique emails found: ${emails.length}. Search complete! ✅`);
             hs_renderResults(emails, socials);
         };
-        const hs_scrape = async () => {
+        hs_scrapeBtn.addEventListener('click', async () => {
             const urlToScrape = normalizeUrl(hs_urlInput.value);
             if (!urlToScrape) return;
             hs_scrapeBtn.disabled = true;
@@ -499,13 +651,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } finally {
                 hs_scrapeBtn.disabled = false;
-                hs_scrapeBtn.textContent = currentTranslations['hybrid_search_btn'] || 'Search';
+                hs_scrapeBtn.textContent = currentTranslations['hybrid_search_btn'];
             }
-        };
-        hs_scrapeBtn.addEventListener('click', hs_scrape);
-    }
+        });
 
-    function setupAffinityOutreachLogic(user) {
+        // --- AFFINITY OUTREACH LOGIC ---
         const ao_keywordInput = document.getElementById('ao-keyword-input');
         const ao_addKeywordBtn = document.getElementById('ao-add-keyword-btn');
         const ao_clearKeywordsBtn = document.getElementById('ao-clear-keywords-btn');
@@ -536,7 +686,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ao_keywordInput.value = '';
         };
         window.outreachSuite.ao_loadProjectKeywords = () => {
-            ao_keywords = (activeProject?.keywords?.length > 0) ? [...new Set(activeProject.keywords)] : [];
+            if (activeProject && activeProject.keywords && activeProject.keywords.length > 0) {
+                ao_keywords = [...new Set(activeProject.keywords)];
+            } else {
+                ao_keywords = [];
+            }
             ao_renderTags();
         };
         const ao_populateSelects = () => {
@@ -545,8 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const countries = {'USA': 'us', 'UK': 'uk', 'Spain': 'es', 'Mexico': 'mx', 'Argentina': 'ar', 'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Germany': 'de', 'France': 'fr', 'Italy': 'it', 'Poland': 'pl' };
             const languages = {'English': 'en', 'Spanish': 'es', 'German': 'de', 'French': 'fr', 'Italian': 'it', 'Polish': 'pl'};
             Object.entries(searchTypes).forEach(([key, value]) => {
-                const translatedName = currentTranslations[key] || key.replace('search_type_', '').replace(/_/g, ' ');
-                ao_searchTypeSelect.add(new Option(translatedName, value));
+                ao_searchTypeSelect.add(new Option(currentTranslations[key] || key.replace('search_type_', '').replace(/_/g, ' '), value));
             });
             Object.entries(countries).forEach(([name, code]) => ao_countrySelect.add(new Option(name, code)));
             Object.entries(languages).forEach(([name, code]) => ao_languageSelect.add(new Option(name, code)));
@@ -588,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <p class="text-sm text-slate-600 mt-2"><strong>Description:</strong> ${res.description}</p>
                         <p class="text-sm text-slate-600 mt-1"><strong>Reason:</strong> ${res.reason}</p>
-                        <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${index}">${currentTranslations['save_to_project_btn'] || 'Save to Project'}</button>
+                        <button class="ao-save-btn mt-3 bg-green-100 text-green-700 text-xs font-bold py-1 px-3 rounded-lg" data-result-index="${index}">${currentTranslations['save_to_project_btn']}</button>
                     </div>
                 </div>`).join('');
             document.querySelectorAll('.ao-save-btn').forEach(btn => {
@@ -598,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.disabled = true;
                     const success = await ao_saveToProject(result);
                     if (success) {
-                        button.textContent = currentTranslations['media_saved'] || 'Saved ✔️';
+                        button.textContent = currentTranslations['media_saved'];
                         button.classList.remove('bg-green-100', 'text-green-700');
                         button.classList.add('bg-slate-200', 'text-slate-500');
                     } else { button.disabled = false; }
@@ -626,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(link.href);
         });
         ao_searchMediaBtn.addEventListener('click', async () => {
-            if (ao_keywords.length === 0) { alert('Please add at least one keyword.'); return; }
+            if (ao_keywords.length === 0) { alert(currentTranslations['add_keyword_alert']); return; }
             ao_searchMediaBtn.disabled = true; ao_searchMediaBtn.innerHTML = '<div class="loader"></div>';
             ao_logContainerWrapper.classList.remove('hidden'); ao_logContainer.innerHTML = '';
             ao_resultsContainer.innerHTML = ''; ao_resultsHeader.classList.add('hidden');
@@ -659,201 +812,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ao_currentResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
             ao_renderResults(ao_currentResults);
             const messageKey = allSearchesSucceeded ? 'search_success_message' : 'search_warn_message';
-            const defaultMessage = allSearchesSucceeded ? "[SUCCESS] Search complete! Found {count} unique results. ✅" : "[WARN] Search finished, but some keywords failed. Found {count} results.";
-            const message = (currentTranslations[messageKey] || defaultMessage).replace('{count}', ao_currentResults.length);
+            const message = (currentTranslations[messageKey] || '').replace('{count}', ao_currentResults.length);
             logToConsole(ao_logContainer, message);
             ao_searchMediaBtn.disabled = false;
-            ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'] || 'Search Media';
-        });
-    }
-
-    // =================================================================================
-    // 🚀 MAIN APP CONTROLLER
-    // =================================================================================
-    const initializeApp = async (user) => {
-        if (isAppInitialized) return;
-        isAppInitialized = true;
-        
-        const views = document.querySelectorAll('.view');
-        const navLinks = document.querySelectorAll('.sidebar-link');
-        const viewSwitchers = document.querySelectorAll('.view-switcher');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const closeMenuButton = document.getElementById('close-menu-button');
-
-        const toggleMenu = () => {
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        };
-
-        window.showOutreachSuiteView = (viewId) => {
-            views.forEach(view => view.classList.add('hidden'));
-            const targetView = document.getElementById(viewId + '-view');
-            if (targetView) {
-                targetView.classList.remove('hidden');
-            } else {
-                document.getElementById('home-view').classList.remove('hidden');
-            }
-            navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + viewId));
-            window.scrollTo(0, 0);
-
-            if (viewId === 'projects' && window.outreachSuite.loadProjects) {
-                document.getElementById('projects-list-view').classList.remove('hidden');
-                document.getElementById('create-edit-project-container').classList.add('hidden');
-                window.outreachSuite.loadProjects(user);
-            }
-            if (viewId === 'affinity-outreach' && window.outreachSuite.ao_loadProjectKeywords) {
-                window.outreachSuite.ao_loadProjectKeywords();
-            }
-        };
-
-        const handleLinkClick = (e) => {
-            e.preventDefault();
-            const viewId = e.currentTarget.getAttribute('href').substring(1);
-            window.location.hash = viewId;
-        };
-
-        window.addEventListener('hashchange', () => {
-            const viewId = window.location.hash ? window.location.hash.substring(1) : 'home';
-            window.showOutreachSuiteView(viewId);
+            ao_searchMediaBtn.innerHTML = currentTranslations['search_media_btn'];
         });
 
-        mobileMenuButton.addEventListener('click', toggleMenu);
-        closeMenuButton.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        navLinks.forEach(link => link.addEventListener('click', handleLinkClick));
-        viewSwitchers.forEach(switcher => switcher.addEventListener('click', handleLinkClick));
-        
-        const handleLanguageChange = async (lang) => {
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) {
-                await sb.auth.updateUser({ data: { language: lang } });
-            }
-            await translatePage(lang);
-            document.body.dispatchEvent(new CustomEvent('languageChanged'));
-        };
-        document.getElementById('lang-en')?.addEventListener('click', () => handleLanguageChange('en'));
-        document.getElementById('lang-es')?.addEventListener('click', () => handleLanguageChange('es'));
-        
-        const setActiveProject = (project) => {
-            activeProject = project;
-            activeProjectDisplay.innerHTML = `<span class="font-normal mr-2">${currentTranslations['active_project'] || 'Active Project:'}</span> <strong>${project.name}</strong>`;
-            document.querySelectorAll('.project-card').forEach(card => {
-                card.classList.remove('border-sky-500', 'bg-sky-50');
-                if (card.dataset.id == project.id) {
-                    card.classList.add('border-sky-500', 'bg-sky-50');
-                }
-            });
-            if (window.outreachSuite.ao_loadProjectKeywords) {
-                window.outreachSuite.ao_loadProjectKeywords();
-            }
-        };
-        
-        const loadProjectDetails = async (projectId) => {
-            const contentDiv = document.getElementById(`content-${projectId}`);
-            if(!contentDiv) return;
-            contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-slate-400">Loading details...</p></div>`;
-            const { data: project, error } = await sb.from('projects').select('keywords').eq('id', projectId).single();
-            const { data: media, error: mediaError } = await sb.from('saved_media').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
-
-            if (error || mediaError) {
-                contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200"><p class="text-red-500">Error loading details.</p></div>`;
-                return;
-            }
-            
-            let keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><p class="text-sm text-slate-500">${currentTranslations['no_keywords_defined'] || 'No keywords defined.'}</p></div>`;
-            if(project.keywords && project.keywords.length > 0) {
-                keywordsHtml = `<div><h5 class="font-bold mb-2">Keywords</h5><div class="flex flex-wrap">${project.keywords.map(k => `<span class="bg-slate-200 text-slate-700 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k}</span>`).join('')}</div></div>`;
-            }
-            
-            let mediaHtml = `<div><h5 class="font-bold mb-2 mt-4" data-translate-key="saved_media_title"></h5><p class="text-sm text-slate-500">${currentTranslations['no_media_saved'] || 'No media saved yet.'}</p></div>`;
-            if(media.length > 0) {
-                mediaHtml = `
-                    <div>
-                        <div class="flex justify-between items-center mb-2 mt-4"><h5 class="font-bold" data-translate-key="saved_media_title"></h5></div>
-                        <div class="space-y-2">${media.map(m => `
-                            <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
-                                <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
-                                <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}" data-translate-key="scrape_contact_btn"></button>
-                            </div>`).join('')}</div>
-                    </div>`;
-            }
-            
-            contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}${mediaHtml}</div>`;
-            contentDiv.dataset.loaded = 'true';
-            translatePage(user.user_metadata?.language || 'en');
-        };
-
-        const deleteProject = async (projectId) => {
-            if (confirm('Are you sure you want to delete this project and all its saved media? This action cannot be undone.')) {
-                await sb.from('saved_media').delete().eq('project_id', projectId);
-                const { error } = await sb.from('projects').delete().eq('id', projectId);
-                if (error) { alert('Error deleting project: ' + error.message); }
-                else { 
-                    if(activeProject && activeProject.id === projectId) { activeProject = null; activeProjectDisplay.innerHTML = ''; } 
-                    await window.outreachSuite.loadProjects(user);
-                }
-            }
-        };
-
-        window.outreachSuite.loadProjects = async (user) => {
-            const projectsListContainer = document.getElementById('projects-list-container');
-            const { data: projects, error } = await sb.from('projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-            if (error) { alert('Error loading projects: ' + error.message); return; }
-            projectsListContainer.innerHTML = '';
-            if (projects.length === 0) {
-                projectsListContainer.innerHTML = `<div class="text-center py-10 px-6 bg-white rounded-xl shadow-sm"><p data-translate-key="no_projects" class="font-medium text-slate-500">${currentTranslations['no_projects'] || 'No projects found'}</p></div>`;
-                activeProject = null;
-                activeProjectDisplay.innerHTML = '';
-            } else {
-                projects.forEach(project => {
-                    const projectCard = document.createElement('div');
-                    projectCard.className = 'project-card bg-white rounded-xl shadow-sm border border-gray-200 transition-all';
-                    projectCard.dataset.id = project.id;
-                    projectCard.innerHTML = `
-                        <div class="project-accordion-header flex justify-between items-center p-4">
-                            <div class="accordion-toggle flex-grow cursor-pointer pr-4">
-                                <h4 class="font-bold text-lg text-slate-800">${project.name}</h4>
-                                <p class="text-sm text-slate-500">${project.url || 'No URL'}</p>
-                            </div>
-                            <div class="flex items-center gap-2 flex-shrink-0 ml-4">
-                                <button class="select-project-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg hover:bg-sky-200" data-translate-key="select_project_btn">Set as Active</button>
-                                <button class="edit-project-btn text-slate-500 hover:text-sky-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5z"></path></svg></button>
-                                <button class="delete-project-btn text-slate-500 hover:text-red-600 p-2 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg></button>
-                                <svg class="accordion-arrow w-5 h-5 text-slate-500 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                            </div>
-                        </div>
-                        <div class="project-accordion-content" id="content-${project.id}"></div>`;
-                    projectsListContainer.appendChild(projectCard);
-                    projectCard.querySelector('.accordion-toggle').addEventListener('click', () => {
-                        const content = projectCard.querySelector('.project-accordion-content');
-                        const arrow = projectCard.querySelector('.accordion-arrow');
-                        content.classList.toggle('open');
-                        arrow.classList.toggle('open');
-                        if(content.classList.contains('open') && !content.dataset.loaded) { loadProjectDetails(project.id); } 
-                    });
-                    projectCard.querySelector('.select-project-btn').addEventListener('click', () => setActiveProject(project));
-                    projectCard.querySelector('.edit-project-btn').addEventListener('click', () => window.outreachSuite.editProjectCallback(project));
-                    projectCard.querySelector('.delete-project-btn').addEventListener('click', () => deleteProject(project.id));
-                });
-                if (!activeProject || !projects.some(p => p.id === activeProject.id)) {
-                   setActiveProject(projects[0]);
-                } else {
-                   const updatedActiveProject = projects.find(p => p.id === activeProject.id);
-                   if (updatedActiveProject) setActiveProject(updatedActiveProject);
-                }
-            }
-        };
-
-        setupSettingsLogic(user);
-        setupProjectsLogic(user);
-        setupHybridScraperLogic(user);
-        setupAffinityOutreachLogic(user);
-
-        const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
-        window.showOutreachSuiteView(initialView);
-        await window.outreachSuite.loadProjects(user);
+        // This should be outside the initializeApp function to ensure it's set up once.
+        loadProjects(user);
     };
 
     // =================================================================================
@@ -862,15 +828,18 @@ document.addEventListener('DOMContentLoaded', () => {
     sb.auth.onAuthStateChange(async (event, session) => {
         const user = session?.user;
         if (session) {
-            body.classList.remove('logged-out'); body.classList.add('logged-in');
+            body.classList.remove('logged-out');
+            body.classList.add('logged-in');
             updateUserAvatar(user);
             await translatePage(user.user_metadata?.language || 'en');
             if (!isAppInitialized) {
                 await initializeApp(user);
             }
         } else {
-            body.classList.remove('logged-in'); body.classList.add('logged-out');
-            isAppInitialized = false; activeProject = null;
+            body.classList.remove('logged-in');
+            body.classList.add('logged-out');
+            isAppInitialized = false;
+            activeProject = null;
             await translatePage('en');
             activeProjectDisplay.innerHTML = '';
         }
@@ -893,9 +862,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await sb.auth.signInWithPassword({ email: authEmailInput.value, password: authPasswordInput.value });
         if (error) showAuthMessage(error.message);
     });
-
     signupBtn.addEventListener('click', async () => {
-        const { data, error } = await sb.auth.signUp({ 
+        const { error } = await sb.auth.signUp({ 
             email: authEmailInput.value, 
             password: authPasswordInput.value, 
             options: { data: { language: authLanguageSelect.value } } 
@@ -903,7 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { 
             showAuthMessage(error.message); 
         } else { 
-            showAuthMessage('Sign up successful! Please check your email to confirm your account.', 'success'); 
+            showAuthMessage('Sign up successful! Please check your email.', 'success'); 
         }
     });
 
@@ -922,13 +890,11 @@ document.addEventListener('DOMContentLoaded', () => {
         authFormContainer.classList.add('hidden');
         recoveryFormContainer.classList.remove('hidden');
     });
-
     backToLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         recoveryFormContainer.classList.add('hidden');
         authFormContainer.classList.remove('hidden');
     });
-
     sendRecoveryBtn.addEventListener('click', async () => {
         const email = recoveryEmailInput.value;
         if (!email) {
