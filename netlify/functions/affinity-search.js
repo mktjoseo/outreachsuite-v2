@@ -5,7 +5,15 @@ const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+  {
+    global: {
+      fetch: fetch,
+    },
+  }
+);
 
 exports.handler = async function(event) {
     if (!GEMINI_API_KEY || !SERPER_API_KEY) {
@@ -22,7 +30,7 @@ exports.handler = async function(event) {
     const diagnosticsLog = [];
 
     try {
-        // await checkUsage(user);
+        await checkUsage(user);
 
         // --- Lógica Original de la Función ---
         const { keyword, country, language, searchType } = event.queryStringParameters;

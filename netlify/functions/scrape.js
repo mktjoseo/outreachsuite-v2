@@ -4,8 +4,15 @@ const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
 
 const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+  {
+    global: {
+      fetch: fetch,
+    },
+  }
+);
 exports.handler = async function(event) {
     if (!SCRAPER_API_KEY) {
         return { statusCode: 500, body: 'Server function error: SCRAPER_API_KEY is not configured.' };

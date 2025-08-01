@@ -4,8 +4,15 @@ const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+  {
+    global: {
+      fetch: fetch,
+    },
+  }
+);
 exports.handler = async function(event) {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };

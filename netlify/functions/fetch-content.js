@@ -4,7 +4,15 @@ const { checkUsage } = require('./usage-helper');
 const { createClient } = require('@supabase/supabase-js');
 
 const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+  {
+    global: {
+      fetch: fetch,
+    },
+  }
+);
 
 function cleanAndTruncateHtml(html, maxLength = 25000) {
     if (!html) return '';
