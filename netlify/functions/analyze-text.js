@@ -22,7 +22,7 @@ exports.handler = async function(event) {
     if (userError) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
 
     try {
-        await checkUsage(user);
+        // await checkUsage(user);
         
         // --- Lógica Original de la Función ---
         const { textContent, domain } = JSON.parse(event.body);

@@ -22,7 +22,7 @@ exports.handler = async function(event) {
     const diagnosticsLog = [];
 
     try {
-        await checkUsage(user);
+        // await checkUsage(user);
 
         // --- Lógica Original de la Función ---
         const { keyword, country, language, searchType } = event.queryStringParameters;
