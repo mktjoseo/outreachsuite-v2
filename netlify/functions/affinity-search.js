@@ -1,42 +1,46 @@
-const axios = require('axios');
-const { checkUsage } = require('./usage-helper');
-const { createClient } = require('@supabase/supabase-js');
+// Archivo: netlify/functions/affinity-search.js
+const fetch = require('node-fetch');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 exports.handler = async function(event) {
     if (!GEMINI_API_KEY || !SERPER_API_KEY) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Server error: One or more API keys are not configured.' }) };
     }
     
-    const { authorization } = event.headers;
-    if (!authorization) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
-    const token = authorization.split(' ')[1];
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError) return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+    const { keyword, country, language, searchType } = event.queryStringParameters;
+    if (!keyword || !country || !language || !searchType) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Error: Missing required parameters.' }) };
+    }
 
     const diagnosticsLog = [];
-    try {
-        await checkUsage(user);
+    let page = 1;
+    if (searchType === 'established') page = 2;
+    if (searchType === 'rising_stars') page = 4; 
 
-        const { keyword, country, language, searchType } = event.queryStringParameters;
-        if (!keyword || !country || !language || !searchType) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Error: Missing required parameters.' }) };
+    try {
+        diagnosticsLog.push(`[INFO] Searching on Google for keyword: "${keyword}"...`);
+        const serperResponse = await fetch('https://google.serper.dev/search', {
+            method: 'POST',
+            headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                q: keyword,
+                gl: country.toLowerCase(),
+                hl: language.toLowerCase(),
+                page: page,
+                num: 10
+            })
+        });
+
+        if (!serperResponse.ok) {
+            const errorBody = await serperResponse.text();
+            if (serperResponse.status === 402) throw new Error('Serper API quota finished.');
+            throw new Error(`Serper API failed with status ${serperResponse.status}: ${errorBody}`);
         }
 
-        let page = 1;
-        if (searchType === 'established') page = 2;
-        if (searchType === 'rising_stars') page = 4; 
-
-        diagnosticsLog.push(`[INFO] Searching on Google for keyword: "${keyword}"...`);
-        
-        const serperResponse = await axios.post('https://google.serper.dev/search', 
-            { q: keyword, gl: country.toLowerCase(), hl: language.toLowerCase(), page: page, num: 10 },
-            { headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' } }
-        );
-        const organicResults = serperResponse.data.organic || [];
+        const serperData = await serperResponse.json();
+        const organicResults = serperData.organic || [];
         
         if (organicResults.length === 0) {
             diagnosticsLog.push(`[WARN] No potential sites found via Google for "${keyword}".`);
@@ -44,8 +48,14 @@ exports.handler = async function(event) {
         }
         
         diagnosticsLog.push(`[SUCCESS] Found ${organicResults.length} potential sites for "${keyword}". Preparing for analysis...`);
-        const sitesToAnalyze = organicResults.map(res => ({ title: res.title, url: res.link, snippet: res.snippet }));
+        
+        const sitesToAnalyze = organicResults.map(res => ({
+            title: res.title,
+            url: res.link,
+            snippet: res.snippet
+        }));
 
+        // --- CAMBIO ---: Prompt actualizado a inglés y con reglas de exclusión más estrictas.
         const prompt = `
             As an SEO and outreach expert, analyze this list of websites found for the keyword "${keyword}".
             For each website in the provided JSON list, evaluate it and return a corresponding JSON object with the following keys:
@@ -66,26 +76,68 @@ exports.handler = async function(event) {
             ${JSON.stringify(sitesToAnalyze, null, 2)}
         `;
 
-        const schema = { type: "OBJECT", properties: { analyzedResults: { type: "ARRAY", items: { type: "OBJECT", properties: { name: { type: "STRING" }, url: { type: "STRING" }, description: { type: "STRING" }, reason: { type: "STRING" }, relevanceScore: { type: "NUMBER" }, category: { type: "STRING" } }, required: ["name", "url", "description", "reason", "relevanceScore", "category"] } } }, required: ["analyzedResults"] };
-        const geminiPayload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
+        const schema = {
+            type: "OBJECT",
+            properties: {
+                analyzedResults: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            name: { type: "STRING" },
+                            url: { type: "STRING" },
+                            description: { type: "STRING" },
+                            reason: { type: "STRING" },
+                            relevanceScore: { type: "NUMBER" },
+                            category: { type: "STRING" }
+                        },
+                        required: ["name", "url", "description", "reason", "relevanceScore", "category"]
+                    }
+                }
+            },
+            required: ["analyzedResults"]
+        };
+
+        const geminiPayload = {
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json", responseSchema: schema },
+        };
         
         diagnosticsLog.push(`[INFO] Sending list of ${sitesToAnalyze.length} sites to Gemini for batch analysis...`);
-        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const geminiResponse = await axios.post(geminiApiUrl, geminiPayload, { headers: { 'Content-Type': 'application/json' } });
-        const parsedResult = JSON.parse(geminiResponse.data.candidates[0].content.parts[0].text);
 
+        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+        const geminiResponse = await fetch(geminiApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(geminiPayload)
+        });
+
+        if (!geminiResponse.ok) {
+            const errorBody = await geminiResponse.text();
+            if (geminiResponse.status === 429) throw new Error(`Gemini API quota exceeded.`);
+            throw new Error(`Gemini API failed with status ${geminiResponse.status}: ${errorBody}`);
+        }
+
+        const geminiData = await geminiResponse.json();
+        
+        if (!geminiData.candidates || !geminiData.candidates[0].content.parts[0]) {
+            throw new Error('Invalid response structure from Gemini API.');
+        }
+
+        const parsedResult = JSON.parse(geminiData.candidates[0].content.parts[0].text);
         const analyzedResults = parsedResult.analyzedResults || [];
+
         diagnosticsLog.push(`[SUCCESS] Analysis complete for "${keyword}". Found ${analyzedResults.length} valid media outlets.`);
-        return { statusCode: 200, body: JSON.stringify({ directResults: analyzedResults, log: diagnosticsLog }) };
+        
+        const finalPayload = {
+             directResults: analyzedResults, 
+             log: diagnosticsLog 
+        };
+
+        return { statusCode: 200, body: JSON.stringify(finalPayload) };
 
     } catch (error) {
-        const errorMessage = error.response ? `API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}` : error.message;
-        diagnosticsLog.push(`[FATAL ERROR] ${errorMessage}`);
-
-        if (error.message === 'QUOTA_EXCEEDED') {
-            return { statusCode: 429, body: JSON.stringify({ error: 'Monthly quota exceeded.' }) };
-        }
-        return { statusCode: 500, body: JSON.stringify({ error: errorMessage, log: diagnosticsLog }) };
+        diagnosticsLog.push(`[FATAL ERROR] ${error.message}`);
+        return { statusCode: 500, body: JSON.stringify({ error: error.message, log: diagnosticsLog }) };
     }
 };

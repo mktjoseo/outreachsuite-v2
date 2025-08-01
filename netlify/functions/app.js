@@ -47,20 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return n;
     };
 
-    function setupPasswordToggle(toggleButtonId, passwordInputId, openEyeId, closedEyeId) {
-    const toggleButton = document.getElementById(toggleButtonId);
-    const passwordInput = document.getElementById(passwordInputId);
-    const eyeOpen = document.getElementById(openEyeId);
-    const eyeClosed = document.getElementById(closedEyeId);
-    if (toggleButton && passwordInput && eyeOpen && eyeClosed) {
-        toggleButton.addEventListener('click', () => {
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
-            eyeOpen.classList.toggle('hidden', isPassword);
-            eyeClosed.classList.toggle('hidden', !isPassword);
-        });
-       }
-      }
     const translatePage = async (lang) => {
         try {
             const response = await fetch(`./lang/${lang}.json`);
@@ -984,6 +970,4 @@ document.addEventListener('DOMContentLoaded', () => {
             sendRecoveryBtn.textContent = 'Send Recovery Link';
         }
     });
-
-    setupPasswordToggle('toggle-auth-password', 'auth-password', 'eye-auth-open', 'eye-auth-closed');
 });
