@@ -10,6 +10,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
+
+<link rel="icon" type="image/png" href="/assets/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+<link rel="shortcut icon" href="/assets/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="OutreachS" />
+<link rel="manifest" href="/assets/site.webmanifest" />
+
 </head>
 <body class="bg-gray-100 logged-out">
 
@@ -71,7 +79,7 @@
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
         <aside id="sidebar" class="w-64 bg-slate-800 text-white flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="flex items-center justify-between p-6 text-2xl font-bold border-b border-slate-700">
-                <span data-translate-key="app_title">OutreachSuite</span>
+                <img src="/assets/outreach-logo.svg" alt="OutreachSuite Logo" class="h-15 w-auto">
                 <button id="close-menu-button" class="md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <nav class="flex-grow p-4">
@@ -87,7 +95,7 @@
                     <button id="lang-es" class="px-3 py-1 text-sm rounded-md transition-colors">Español</button>
                     <button id="lang-en" class="px-3 py-1 text-sm rounded-md transition-colors">English</button>
                 </div>
-                <p class="text-xs text-slate-400 text-center" data-translate-key="made_by">Made with <span class="text-red-500">♥</span> by Eduardo Bortolotti L.</p>
+                <p class="text-xs text-slate-400 text-center" data-translate-key="made_by">Made with <span class="text-red-500">♥</span> to help you.</p>
             </div>
         </aside>
 
