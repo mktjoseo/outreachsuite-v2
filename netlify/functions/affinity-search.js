@@ -71,6 +71,7 @@ exports.handler = async function(event) {
             - Forums and community sites (reddit.com, quora.com, etc.).
             - Government domains (any URL ending in .gov).
             - User-generated content platforms like YouTube.
+            - Reference and encyclopedia sites like Wikipedia.
 
             Analyze the following list of sites:
             ${JSON.stringify(sitesToAnalyze, null, 2)}
@@ -105,7 +106,7 @@ exports.handler = async function(event) {
         
         diagnosticsLog.push(`[INFO] Sending list of ${sitesToAnalyze.length} sites to Gemini for batch analysis...`);
 
-        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
         const geminiResponse = await fetch(geminiApiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
