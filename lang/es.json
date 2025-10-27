@@ -92,5 +92,7 @@
   "no_media_saved": "No hay medios guardados todavía.",
   "search_success_message": "[SUCCESS] ¡Búsqueda completada! Se encontraron {count} resultados únicos. ✅",
   "search_warn_message": "[WARN] Búsqueda finalizada, pero algunas palabras clave fallaron. Se encontraron {count} resultados de las búsquedas exitosas.",
-  "hybrid_scraper_lang_explainer": "Selecciona el idioma del sitio web de destino para mejorar la precisión al encontrar páginas de contacto."
+  "hybrid_scraper_lang_explainer": "Selecciona el idioma del sitio web de destino para mejorar la precisión al encontrar páginas de contacto.",
+  "remove_btn": "Quitar",
+  "confirm_media_delete": "¿Estás seguro de que quieres quitar este medio?"
 }

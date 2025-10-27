@@ -92,5 +92,7 @@
   "no_media_saved": "No media saved yet.",
   "search_success_message": "[SUCCESS] Search complete! Found {count} unique results. ✅",
   "search_warn_message": "[WARN] Search finished, but some keywords failed. Found {count} results from successful searches.",
-  "hybrid_scraper_lang_explainer": "Select the target website's language to improve the accuracy of finding contact pages."
+  "hybrid_scraper_lang_explainer": "Select the target website's language to improve the accuracy of finding contact pages.",
+  "remove_btn": "Remove",
+  "confirm_media_delete": "Are you sure you want to remove this media?"
 }

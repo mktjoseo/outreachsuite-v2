@@ -808,6 +808,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="space-y-2">${media.map(m => `
                             <div class="bg-slate-50 p-2 rounded-lg flex items-center gap-2">
                                 <div class="flex-grow"><p class="font-semibold text-sm text-slate-700">${m.name}</p><a href="${m.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 truncate block">${m.url}</a></div>
+                                
+                                <button 
+                                    class="delete-saved-media-btn bg-red-100 text-red-700 text-xs font-bold py-1 px-3 rounded-lg hover:bg-red-200" 
+                                    data-id="${m.id}" 
+                                    data-project-id="${projectId}"
+                                    data-translate-key="remove_btn">
+                                    Remove
+                                </button>
                                 <button class="hs-scrap-contact-btn bg-sky-100 text-sky-700 text-xs font-bold py-1 px-3 rounded-lg" data-url="${m.url}" data-translate-key="scrape_contact_btn"></button>
                             </div>`).join('')}</div>
                     </div>`;
@@ -816,6 +824,18 @@ document.addEventListener('DOMContentLoaded', () => {
             contentDiv.innerHTML = `<div class="p-4 border-t border-gray-200 space-y-4">${keywordsHtml}${mediaHtml}</div>`;
             contentDiv.dataset.loaded = 'true';
             translatePage(user.user_metadata?.language || 'en');
+
+            // 🛠️ LISTENER DE EVENTOS AÑADIDO DESPUÉS DE RENDERIZAR EL HTML
+            contentDiv.querySelectorAll('.delete-saved-media-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const mediaId = e.currentTarget.dataset.id;
+                    const confirmMessage = currentTranslations['confirm_media_delete'] || 'Are you sure you want to remove this media?';
+                    if (confirm(confirmMessage)) {
+                        await deleteSavedMedia(mediaId, projectId);
+                    }
+                });
+            });
+            // FIN 
         };
 
         const deleteProject = async (projectId) => {
@@ -827,6 +847,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(activeProject && activeProject.id === projectId) { activeProject = null; activeProjectDisplay.innerHTML = ''; } 
                     await window.outreachSuite.loadProjects(user);
                 }
+            }
+        };
+
+        // 🛠️ NUEVA FUNCION: Eliminar medio guardado
+        const deleteSavedMedia = async (mediaId, projectId) => {
+            const { error } = await sb.from('saved_media').delete().eq('id', mediaId);
+            
+            if (error) {
+                alert('Error removing saved media: ' + error.message);
+            } else {
+                // Si la eliminación es exitosa, recarga los detalles del proyecto para actualizar la vista.
+                await loadProjectDetails(projectId); 
             }
         };
 
